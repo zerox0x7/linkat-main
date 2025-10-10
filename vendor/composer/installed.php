@@ -3,7 +3,7 @@
         'name' => 'laravel/laravel',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '473d1a8cd92209bddeeeee41e48cf38e42d437af',
+        'reference' => 'a284f8c4ded4d7bf560b238ae29c1c0dcf7f517f',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -391,7 +391,7 @@
         'laravel/laravel' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '473d1a8cd92209bddeeeee41e48cf38e42d437af',
+            'reference' => 'a284f8c4ded4d7bf560b238ae29c1c0dcf7f517f',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -555,6 +555,24 @@
             'install_path' => __DIR__ . '/../myclabs/deep-copy',
             'aliases' => array(),
             'dev_requirement' => true,
+        ),
+        'myfatoorah/laravel-package' => array(
+            'pretty_version' => '2.2.4',
+            'version' => '2.2.4.0',
+            'reference' => '4bb8ce82639c06697e04b701569d35e72a00f591',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../myfatoorah/laravel-package',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'myfatoorah/library' => array(
+            'pretty_version' => '2.2.8',
+            'version' => '2.2.8.0',
+            'reference' => 'd276914fe0064147c798c59d9b05f75f7f575c4c',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../myfatoorah/library',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'nesbot/carbon' => array(
             'pretty_version' => '2.73.0',
@@ -802,8 +820,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '3.0.0',
-                1 => '1.0|2.0|3.0',
+                0 => '1.0|2.0|3.0',
+                1 => '3.0.0',
             ),
         ),
         'psr/simple-cache' => array(

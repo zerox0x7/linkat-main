@@ -11,6 +11,7 @@
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.8",
         "livewire/livewire": "^3.6",
+        "myfatoorah/laravel-package": "^2.2",
         "spatie/laravel-sitemap": "^7.0"
     },
     "require-dev": {

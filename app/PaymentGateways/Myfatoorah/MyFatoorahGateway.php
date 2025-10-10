@@ -13,32 +13,20 @@ class MyFatoorahGateway
 
     public function __construct()
     {
-        require_once app_path('PaymentGateways/Myfatoorah/autoload.php');
+        // لا حاجة لتحميل autoload يدوياً - Laravel autoload يتعامل مع المكتبة تلقائياً
         // جلب بيانات البوابة من قاعدة البيانات
         $this->gateway = \App\Models\PaymentMethod::where('code', 'myfatoorah')->where('is_active', 1)->first();
         if (!$this->gateway) {
             throw new \Exception('بوابة ماي فاتورة غير مفعلة أو غير موجودة');
         }
+        
         $config = $this->gateway->config;
-        // ربط العملة بكود الدولة تلقائياً
-        $settings = $this->gateway->settings;
-        $settings = is_string($settings) ? json_decode($settings, true) : (array)$settings;
-        $currency = $settings['currency'] ?? '';
-        $currencyCountryMap = [
-            'SAR' => 'SAU',
-            'KWD' => 'KWT',
-            'BHD' => 'BHR',
-            'AED' => 'ARE',
-            'QAR' => 'QAT',
-            'OMR' => 'OMN',
-            'JOD' => 'JOR',
-            'EGP' => 'EGY',
-        ];
-        $countryCode = $currencyCountryMap[$currency] ?? '';
-        $this->mf = new \MyFatoorah\Library\API\Payment\MyFatoorahPayment([
+        
+        // إعداد MyFatoorah بطريقة مبسطة
+        $this->mf = new \MyFatoorah\Library\MyFatoorah([
             'apiKey' => $config['apiKey'] ?? '',
             'isTest' => $this->gateway->mode === 'test',
-            'vcCode' => $config['vcCode'] ?? $countryCode,
+            'countryCode' => $config['vcCode'] ?? 'SAU',
         ]);
     }
 
@@ -79,12 +67,24 @@ class MyFatoorahGateway
             'CallBackUrl'        => $successUrl,
             'ErrorUrl'           => $errorUrl,
         ];
+        
         try {
-            $paymentData = $this->mf->getInvoiceURL($postFields);
-            return $paymentData['invoiceURL'] ?? null;
+            // استخدام الطريقة الصحيحة لإنشاء الدفع
+            $apiURL = $this->mf->getApiURL();
+            $result = $this->mf->callAPI("$apiURL/v2/SendPayment", $postFields);
+            
+            if (isset($result['IsSuccess']) && $result['IsSuccess'] === true && isset($result['Data']['InvoiceURL'])) {
+                return $result['Data']['InvoiceURL'];
+            } else {
+                $errorMessage = $result['Message'] ?? 'خطأ غير معروف من MyFatoorah';
+                \Log::error('MyFatoorah Payment Error: ' . $errorMessage, [
+                    'result' => $result,
+                    'postFields' => $postFields,
+                ]);
+                throw new \Exception('خطأ من MyFatoorah: ' . $errorMessage);
+            }
         } catch (\Exception $e) {
             \Log::error('MyFatoorah Payment Error: ' . $e->getMessage(), [
-                'mfConfig' => isset($this->mf) ? (array)($this->mf) : null,
                 'postFields' => $postFields,
                 'trace' => $e->getTraceAsString(),
             ]);
@@ -130,31 +130,43 @@ class MyFatoorahGateway
     public function verifyPayment($paymentId)
     {
         try {
-            $config = $this->gateway->config;
-            $mfConfig = [
-                'apiKey' => $config['apiKey'] ?? '',
-                'isTest' => $this->gateway->mode === 'test',
-                'vcCode' => $config['vcCode'] ?? ($config['countryCode'] ?? ''),
-            ];
-            $mfObj = new \MyFatoorah\Library\MyFatoorah($mfConfig);
-            $apiURL = $mfObj->getApiURL();
+            // استخدام نفس كائن MyFatoorah المُنشأ في constructor
+            $apiURL = $this->mf->getApiURL();
             $postFields = [
                 'Key' => $paymentId,
                 'KeyType' => 'PaymentId',
             ];
-            $result = $mfObj->callAPI("$apiURL/v2/GetPaymentStatus", $postFields);
-            $resultArr = json_decode(json_encode($result), true);
-            if (isset($resultArr['Data']['InvoiceStatus']) && $resultArr['Data']['InvoiceStatus'] === 'Paid') {
-                return [
-                    'success' => true,
-                    'status' => 'Paid',
-                    'data' => $resultArr['Data']
-                ];
+            
+            $result = $this->mf->callAPI("$apiURL/v2/GetPaymentStatus", $postFields);
+            
+            if (isset($result['IsSuccess']) && $result['IsSuccess'] === true && isset($result['Data']['InvoiceStatus'])) {
+                $invoiceStatus = $result['Data']['InvoiceStatus'];
+                
+                if ($invoiceStatus === 'Paid') {
+                    return [
+                        'success' => true,
+                        'status' => 'Paid',
+                        'data' => $result['Data']
+                    ];
+                } else {
+                    return [
+                        'success' => false,
+                        'status' => $invoiceStatus,
+                        'data' => $result['Data']
+                    ];
+                }
             } else {
+                $errorMessage = $result['Message'] ?? 'خطأ غير معروف من MyFatoorah';
+                \Log::error('MyFatoorah verifyPayment error: ' . $errorMessage, [
+                    'paymentId' => $paymentId,
+                    'result' => $result,
+                ]);
+                
                 return [
                     'success' => false,
-                    'status' => $resultArr['Data']['InvoiceStatus'] ?? 'Unknown',
-                    'data' => $resultArr['Data'] ?? $resultArr
+                    'status' => 'Error',
+                    'data' => [],
+                    'message' => $errorMessage
                 ];
             }
         } catch (\Exception $e) {

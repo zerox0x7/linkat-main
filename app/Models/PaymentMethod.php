@@ -157,7 +157,7 @@ class PaymentMethod extends Model
     {
         // دعم المسار الفرعي لماي فاتورة وادفع باي
         if ($this->code === 'myfatoorah') {
-            $gatewayClass = 'App\\PaymentGateways\\Myfatoorah\\MyFatoorahGateway';
+            $gatewayClass = 'App\\PaymentGateways\\Myfatoorah\\SimpleMyFatoorahGateway';
         } elseif ($this->code === 'edfapay') {
             $gatewayClass = 'App\\PaymentGateways\\EdfaPay\\EdfaPayGateway';
         } else {

@@ -296,7 +296,7 @@ class PaymentController extends Controller
     {
         $orderId = $request->get('order_id');
         $token = $request->get('token');
-        Log::info('بيانات الاستجابة الكاملة من كليك باي - success', [
+        Log::info('بيانات الاستجابة الكاملة من بوابة الدفع - success', [
             'all_data' => $request->all(),
             'query_params' => $request->query(),
             'order_id' => $orderId,
@@ -304,6 +304,8 @@ class PaymentController extends Controller
             'respStatus' => $request->get('respStatus'),
             'tranRef' => $request->get('tranRef'),
             'tran_ref' => $request->get('tran_ref'),
+            'transactionNo' => $request->get('transactionNo'),
+            'orderNumber' => $request->get('orderNumber'),
             'headers' => $request->headers->all(),
             'server_data' => $_SERVER,
             'request_method' => $request->method(),
@@ -318,6 +320,14 @@ class PaymentController extends Controller
         $order = \App\Models\Order::where('id', $orderId)
             ->where('order_token', $token)
             ->first();
+        
+        // إذا لم يتم العثور على الطلب باستخدام order_token، جرب order_number
+        if (!$order) {
+            $order = \App\Models\Order::where('id', $orderId)
+                ->where('order_number', $token)
+                ->first();
+        }
+        
         if (!$order) {
             return redirect()->route('checkout.index')
                 ->with('error', 'رابط غير صالح أو الطلب غير موجود. يرجى التواصل مع الدعم الفني.');
@@ -333,7 +343,8 @@ class PaymentController extends Controller
         }
 
         try {
-            $paymentMethod = PaymentMethod::where('code', 'clickpay')->first();
+            // استخدام payment_method من Order بدلاً من hardcode
+            $paymentMethod = PaymentMethod::where('code', $order->payment_method)->first();
             if (!$paymentMethod) {
                 return redirect()->route('orders.show', $order->id)
                     ->with('error', 'طريقة الدفع غير متاحة');
@@ -397,13 +408,15 @@ class PaymentController extends Controller
     {
         $orderId = $request->get('order_id');
         $token = $request->get('token');
-        Log::info('بيانات الإلغاء الكاملة من كليك باي', [
+        Log::info('بيانات الإلغاء الكاملة من بوابة الدفع', [
             'all_data' => $request->all(),
             'query_params' => $request->query(),
             'order_id' => $orderId,
             'token' => $token,
             'tranRef' => $request->get('tranRef'),
             'tran_ref' => $request->get('tran_ref'),
+            'transactionNo' => $request->get('transactionNo'),
+            'orderNumber' => $request->get('orderNumber'),
             'respStatus' => $request->get('respStatus'),
             'headers' => $request->headers->all(),
             'request_method' => $request->method(),
@@ -415,6 +428,14 @@ class PaymentController extends Controller
         $order = \App\Models\Order::where('id', $orderId)
             ->where('order_token', $token)
             ->first();
+        
+        // إذا لم يتم العثور على الطلب باستخدام order_token، جرب order_number
+        if (!$order) {
+            $order = \App\Models\Order::where('id', $orderId)
+                ->where('order_number', $token)
+                ->first();
+        }
+        
         if (!$order) {
             return redirect()->route('checkout.index')
                 ->with('error', 'رابط غير صالح أو الطلب غير موجود. يرجى التواصل مع الدعم الفني.');
@@ -436,7 +457,8 @@ class PaymentController extends Controller
                 ->latest()
                 ->first();
             if ($latestPayment && $latestPayment->payment_id) {
-                $paymentMethod = PaymentMethod::where('code', 'clickpay')->first();
+                // استخدام payment_method من Order بدلاً من hardcode
+                $paymentMethod = PaymentMethod::where('code', $order->payment_method)->first();
                 if ($paymentMethod) {
                     $gateway = $this->createGateway($paymentMethod);
                     $paymentData = [
@@ -532,8 +554,8 @@ class PaymentController extends Controller
                 ->with('info', 'تم دفع هذا الطلب بالفعل');
         }
         try {
-            require_once app_path('PaymentGateways/Myfatoorah/autoload.php');
-            $gateway = new \App\PaymentGateways\Myfatoorah\MyFatoorahGateway();
+            // استخدام SimpleMyFatoorahGateway الجديد
+            $gateway = new \App\PaymentGateways\Myfatoorah\SimpleMyFatoorahGateway();
             $customer = [
                 'name'   => $order->user->name ?? 'عميل',
                 'email'  => $order->user->email ?? 'test@test.com',
