@@ -15,13 +15,18 @@ class ThemeCustomizer extends Component
     public $themeData;
     public $themeName;
     
-    // Hero section
-    public $heroTitle;
-    public $heroDescription;
-    public $heroButtonText;
-    public $heroButtonLink;
-    public $heroImage;
-    public $heroImagePreview;
+    // Hero section - Multiple slides (up to 6)
+    public $heroSlides = [];
+    public $newHeroSlide = [
+        'title' => '',
+        'subtitle' => '',
+        'button_text' => '',
+        'button_link' => '',
+        'image' => null,
+        'image_preview' => null,
+    ];
+    public $editingSlideIndex = null;
+    public $tempSlideImage;
     
     // Banner section
     public $bannerTitle;
@@ -63,14 +68,15 @@ class ThemeCustomizer extends Component
     
     public function loadData()
     {
-        // Load hero data
+        // Load hero slides data
         $heroData = $this->themeData->hero_data ?? [];
-        $this->heroTitle = $heroData['title'] ?? '';
-        $this->heroDescription = $heroData['description'] ?? '';
-        $this->heroButtonText = $heroData['button_text'] ?? '';
-        $this->heroButtonLink = $heroData['button_link'] ?? '';
-        if (isset($heroData['main_image'])) {
-            $this->heroImagePreview = Storage::url($heroData['main_image']);
+        $this->heroSlides = $heroData['slides'] ?? [];
+        
+        // Add image preview URLs for existing slides
+        foreach ($this->heroSlides as $index => $slide) {
+            if (isset($slide['image'])) {
+                $this->heroSlides[$index]['image_preview'] = Storage::url($slide['image']);
+            }
         }
         
         // Load banner data
@@ -90,13 +96,17 @@ class ThemeCustomizer extends Component
         $this->customJs = $this->themeData->custom_js ?? '';
     }
     
-    public function updatedHeroImage()
+    public function updatedTempSlideImage()
     {
         $this->validate([
-            'heroImage' => 'image|max:2048',
+            'tempSlideImage' => 'image|max:2048',
         ]);
         
-        $this->heroImagePreview = $this->heroImage->temporaryUrl();
+        if ($this->editingSlideIndex !== null) {
+            $this->heroSlides[$this->editingSlideIndex]['image_preview'] = $this->tempSlideImage->temporaryUrl();
+        } else {
+            $this->newHeroSlide['image_preview'] = $this->tempSlideImage->temporaryUrl();
+        }
     }
     
     public function updatedBannerImage()
@@ -108,14 +118,205 @@ class ThemeCustomizer extends Component
         $this->bannerImagePreview = $this->bannerImage->temporaryUrl();
     }
     
+    public function addHeroSlide()
+    {
+        if (count($this->heroSlides) >= 6) {
+            session()->flash('error', 'لا يمكن إضافة أكثر من 6 صور للبطل');
+            return;
+        }
+        
+        $this->validate([
+            'newHeroSlide.title' => 'required|string|max:255',
+            'newHeroSlide.subtitle' => 'nullable|string|max:500',
+            'newHeroSlide.button_text' => 'nullable|string|max:100',
+            'newHeroSlide.button_link' => 'nullable|string|max:255',
+            'tempSlideImage' => 'required|image|max:2048',
+        ], [
+            'newHeroSlide.title.required' => 'العنوان مطلوب',
+            'tempSlideImage.required' => 'الصورة مطلوبة',
+            'tempSlideImage.image' => 'يجب أن يكون الملف صورة',
+            'tempSlideImage.max' => 'حجم الصورة يجب أن لا يتجاوز 2MB',
+        ]);
+        
+        // Upload image
+        $path = $this->tempSlideImage->store('themes/' . $this->themeName . '/hero', 'public');
+        
+        // Add new slide
+        $this->heroSlides[] = [
+            'id' => uniqid(),
+            'title' => $this->newHeroSlide['title'],
+            'subtitle' => $this->newHeroSlide['subtitle'],
+            'button_text' => $this->newHeroSlide['button_text'],
+            'button_link' => $this->newHeroSlide['button_link'],
+            'image' => $path,
+            'image_preview' => Storage::url($path),
+            'order' => count($this->heroSlides),
+        ];
+        
+        // Save immediately
+        $this->saveHeroSlides();
+        
+        // Reset form
+        $this->resetNewHeroSlide();
+        
+        session()->flash('message', 'تم إضافة الصورة بنجاح');
+    }
+    
+    public function editHeroSlide($index)
+    {
+        $this->editingSlideIndex = $index;
+        $this->newHeroSlide = $this->heroSlides[$index];
+        $this->newHeroSlide['image_preview'] = $this->heroSlides[$index]['image_preview'] ?? null;
+    }
+    
+    public function updateHeroSlide()
+    {
+        if ($this->editingSlideIndex === null) {
+            return;
+        }
+        
+        $this->validate([
+            'newHeroSlide.title' => 'required|string|max:255',
+            'newHeroSlide.subtitle' => 'nullable|string|max:500',
+            'newHeroSlide.button_text' => 'nullable|string|max:100',
+            'newHeroSlide.button_link' => 'nullable|string|max:255',
+            'tempSlideImage' => 'nullable|image|max:2048',
+        ], [
+            'newHeroSlide.title.required' => 'العنوان مطلوب',
+        ]);
+        
+        // Update slide data
+        $this->heroSlides[$this->editingSlideIndex]['title'] = $this->newHeroSlide['title'];
+        $this->heroSlides[$this->editingSlideIndex]['subtitle'] = $this->newHeroSlide['subtitle'];
+        $this->heroSlides[$this->editingSlideIndex]['button_text'] = $this->newHeroSlide['button_text'];
+        $this->heroSlides[$this->editingSlideIndex]['button_link'] = $this->newHeroSlide['button_link'];
+        
+        // Update image if new one uploaded
+        if ($this->tempSlideImage) {
+            // Delete old image
+            if (isset($this->heroSlides[$this->editingSlideIndex]['image'])) {
+                Storage::disk('public')->delete($this->heroSlides[$this->editingSlideIndex]['image']);
+            }
+            
+            $path = $this->tempSlideImage->store('themes/' . $this->themeName . '/hero', 'public');
+            $this->heroSlides[$this->editingSlideIndex]['image'] = $path;
+            $this->heroSlides[$this->editingSlideIndex]['image_preview'] = Storage::url($path);
+        }
+        
+        // Save
+        $this->saveHeroSlides();
+        
+        // Reset form
+        $this->resetNewHeroSlide();
+        $this->editingSlideIndex = null;
+        
+        session()->flash('message', 'تم تحديث الصورة بنجاح');
+    }
+    
+    public function cancelEdit()
+    {
+        $this->resetNewHeroSlide();
+        $this->editingSlideIndex = null;
+    }
+    
+    public function deleteHeroSlide($index)
+    {
+        if (isset($this->heroSlides[$index])) {
+            // Delete image from storage
+            if (isset($this->heroSlides[$index]['image'])) {
+                Storage::disk('public')->delete($this->heroSlides[$index]['image']);
+            }
+            
+            // Remove slide
+            unset($this->heroSlides[$index]);
+            $this->heroSlides = array_values($this->heroSlides); // Re-index array
+            
+            // Save
+            $this->saveHeroSlides();
+            
+            session()->flash('message', 'تم حذف الصورة بنجاح');
+        }
+    }
+    
+    public function moveSlideUp($index)
+    {
+        if ($index > 0) {
+            $temp = $this->heroSlides[$index];
+            $this->heroSlides[$index] = $this->heroSlides[$index - 1];
+            $this->heroSlides[$index - 1] = $temp;
+            
+            $this->saveHeroSlides();
+            session()->flash('message', 'تم تغيير ترتيب الصورة');
+        }
+    }
+    
+    public function moveSlideDown($index)
+    {
+        if ($index < count($this->heroSlides) - 1) {
+            $temp = $this->heroSlides[$index];
+            $this->heroSlides[$index] = $this->heroSlides[$index + 1];
+            $this->heroSlides[$index + 1] = $temp;
+            
+            $this->saveHeroSlides();
+            session()->flash('message', 'تم تغيير ترتيب الصورة');
+        }
+    }
+    
+    public function reorderSlides($orderedIds)
+    {
+        // Create a map of slides by their IDs
+        $slidesMap = [];
+        foreach ($this->heroSlides as $slide) {
+            if (isset($slide['id'])) {
+                $slidesMap[$slide['id']] = $slide;
+            }
+        }
+        
+        // Reorder slides based on the new order
+        $reorderedSlides = [];
+        foreach ($orderedIds as $id) {
+            if (isset($slidesMap[$id])) {
+                $reorderedSlides[] = $slidesMap[$id];
+            }
+        }
+        
+        $this->heroSlides = $reorderedSlides;
+        $this->saveHeroSlides();
+        
+        session()->flash('message', 'تم إعادة ترتيب الصور بنجاح');
+    }
+    
+    private function resetNewHeroSlide()
+    {
+        $this->newHeroSlide = [
+            'title' => '',
+            'subtitle' => '',
+            'button_text' => '',
+            'button_link' => '',
+            'image' => null,
+            'image_preview' => null,
+        ];
+        $this->tempSlideImage = null;
+    }
+    
+    private function saveHeroSlides()
+    {
+        $heroData = $this->themeData->hero_data ?? [];
+        
+        // Clean slides data (remove preview URLs)
+        $slidesToSave = array_map(function($slide) {
+            unset($slide['image_preview']);
+            return $slide;
+        }, $this->heroSlides);
+        
+        $heroData['slides'] = $slidesToSave;
+        $this->themeData->hero_data = $heroData;
+        $this->themeData->save();
+    }
+    
     public function save()
     {
         $this->validate([
-            'heroTitle' => 'nullable|string|max:255',
-            'heroDescription' => 'nullable|string',
-            'heroButtonText' => 'nullable|string|max:100',
-            'heroButtonLink' => 'nullable|string|max:255',
-            'heroImage' => 'nullable|image|max:2048',
             'bannerTitle' => 'nullable|string|max:255',
             'bannerDescription' => 'nullable|string',
             'bannerLink' => 'nullable|string|max:255',
@@ -124,25 +325,7 @@ class ThemeCustomizer extends Component
             'customJs' => 'nullable|string',
         ]);
         
-        // Update hero data
-        $heroData = $this->themeData->hero_data ?? [];
-        $heroData['title'] = $this->heroTitle;
-        $heroData['description'] = $this->heroDescription;
-        $heroData['button_text'] = $this->heroButtonText;
-        $heroData['button_link'] = $this->heroButtonLink;
-        
-        // Handle hero image upload
-        if ($this->heroImage) {
-            // Delete old image if exists
-            if (isset($heroData['main_image'])) {
-                Storage::disk('public')->delete($heroData['main_image']);
-            }
-            
-            $path = $this->heroImage->store('themes/' . $this->themeName . '/hero', 'public');
-            $heroData['main_image'] = $path;
-        }
-        
-        $this->themeData->hero_data = $heroData;
+        // Hero slides are saved separately via addHeroSlide/updateHeroSlide/deleteHeroSlide
         
         // Update banner data
         $bannerData = $this->themeData->banner_data ?? [];
@@ -173,26 +356,10 @@ class ThemeCustomizer extends Component
         $this->themeData->save();
         
         // Reset file uploads
-        $this->heroImage = null;
         $this->bannerImage = null;
         
         $this->dispatch('theme-saved');
         session()->flash('message', 'تم حفظ إعدادات الثيم بنجاح');
-    }
-    
-    public function deleteHeroImage()
-    {
-        $heroData = $this->themeData->hero_data ?? [];
-        
-        if (isset($heroData['main_image'])) {
-            Storage::disk('public')->delete($heroData['main_image']);
-            unset($heroData['main_image']);
-            $this->themeData->hero_data = $heroData;
-            $this->themeData->save();
-            
-            $this->heroImagePreview = null;
-            session()->flash('message', 'تم حذف صورة البطل بنجاح');
-        }
     }
     
     public function deleteBannerImage()

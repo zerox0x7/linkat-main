@@ -77,7 +77,7 @@
     </div>
 
     @livewireScripts
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         // Dropdown functionality
         function toggleDropdown(id) {
@@ -104,6 +104,9 @@
                     themesArrow.style.transform = 'rotate(180deg)';
                 }
             @endif
+
+            // Initialize Sortable for Hero Slides
+            initSortableSlides();
         });
 
         // Listen for Livewire events
@@ -112,7 +115,59 @@
                 // Scroll to top to show message
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
+
+            // Reinitialize sortable after Livewire updates
+            Livewire.hook('message.processed', (message, component) => {
+                initSortableSlides();
+            });
         });
+
+        // Initialize Sortable for slides
+        function initSortableSlides() {
+            const slidesContainer = document.getElementById('hero-slides-container');
+            if (slidesContainer && typeof Sortable !== 'undefined') {
+                new Sortable(slidesContainer, {
+                    animation: 200,
+                    handle: '.drag-handle',
+                    ghostClass: 'sortable-ghost',
+                    dragClass: 'sortable-drag',
+                    onEnd: function(evt) {
+                        // Get the new order of slide IDs
+                        const slideElements = slidesContainer.querySelectorAll('[data-slide-id]');
+                        const orderedIds = Array.from(slideElements).map(el => el.getAttribute('data-slide-id'));
+                        
+                        // Send to Livewire component - try multiple methods for compatibility
+                        try {
+                            // Method 1: Use window function (set by Livewire component)
+                            if (typeof window.reorderHeroSlides === 'function') {
+                                window.reorderHeroSlides(orderedIds);
+                                return;
+                            }
+                            
+                            // Method 2: Find component by wire:id
+                            const livewireEl = slidesContainer.closest('[wire\\:id]');
+                            if (livewireEl && typeof Livewire !== 'undefined') {
+                                const componentId = livewireEl.getAttribute('wire:id');
+                                if (componentId) {
+                                    const component = Livewire.find(componentId);
+                                    if (component) {
+                                        component.call('reorderSlides', orderedIds);
+                                        return;
+                                    }
+                                }
+                            }
+                            
+                            // Method 3: Dispatch custom event
+                            window.dispatchEvent(new CustomEvent('reorder-hero-slides', { 
+                                detail: { orderedIds: orderedIds } 
+                            }));
+                        } catch (error) {
+                            console.error('Error calling reorderSlides:', error);
+                        }
+                    }
+                });
+            }
+        }
     </script>
 
     <style>
@@ -145,6 +200,32 @@
 
         .s-dropdown-content {
             display: none;
+        }
+
+        /* Sortable Styles */
+        .sortable-ghost {
+            opacity: 0.4;
+            background: rgba(21, 184, 166, 0.1);
+            border: 2px dashed #15B8A6 !important;
+        }
+
+        .sortable-drag {
+            opacity: 0.8;
+            cursor: grabbing !important;
+        }
+
+        .drag-handle {
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+
+        .drag-handle:hover {
+            color: #15B8A6;
+            transform: scale(1.1);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
         }
     </style>
 </body>
