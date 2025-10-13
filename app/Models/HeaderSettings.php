@@ -63,6 +63,9 @@ class HeaderSettings extends Model
         'mobile_menu_enabled',
         'mobile_search_enabled',
         'mobile_cart_enabled',
+        
+        // Settings
+        'settings_enabled',
     ];
 
     protected $casts = [
@@ -106,6 +109,9 @@ class HeaderSettings extends Model
         'mobile_menu_enabled' => 'boolean',
         'mobile_search_enabled' => 'boolean',
         'mobile_cart_enabled' => 'boolean',
+        
+        // Settings
+        'settings_enabled' => 'boolean',
     ];
 
     /**

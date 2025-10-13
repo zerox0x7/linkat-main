@@ -34,6 +34,7 @@ class CartController extends Controller
      */
     public function addItemAndCheckout(Request $request)
     {
+        $store = $request->attributes->get('store');
         $product_id = $request->query('product_id');
         $product_type = $request->query('product_type', 'product');
         $selected_price = $request->query('selected_price');
@@ -46,10 +47,12 @@ class CartController extends Controller
 
         // الحصول على المنتج بناءً على النوع
         if ($product_type === 'product') {
-            $product = Product::findOrFail($product_id);
+            $product = Product::where('store_id', $store->id)
+                ->findOrFail($product_id);
             $cartableType = Product::class;
         } else { // digital_card
-            $product = DigitalCard::findOrFail($product_id);
+            $product = DigitalCard::where('store_id', $store->id)
+                ->findOrFail($product_id);
             $cartableType = DigitalCard::class;
         }
         
@@ -106,16 +109,17 @@ class CartController extends Controller
             'quantity' => 'integer|min:1',
         ]);
 
+        $store = $request->attributes->get('store');
         $productId = $request->product_id;
         $productType = $request->product_type;
         $quantity = $request->quantity ?? 1;
 
         // الحصول على المنتج بناءً على النوع
         if ($productType === 'product') {
-            $product = Product::find($productId);
+            $product = Product::where('store_id', $store->id)->find($productId);
             $cartableType = Product::class;
         } else {
-            $product = DigitalCard::find($productId);
+            $product = DigitalCard::where('store_id', $store->id)->find($productId);
             $cartableType = DigitalCard::class;
         }
 
@@ -391,6 +395,7 @@ class CartController extends Controller
      */
     public function buyNow(Request $request)
     {
+        $store = $request->attributes->get('store');
         $product_id = $request->query('product_id');
         $product_type = $request->query('product_type', 'product');
         $selected_price = $request->query('selected_price');
@@ -401,10 +406,10 @@ class CartController extends Controller
         }
         // الحصول على المنتج بناءً على النوع
         if ($product_type === 'product') {
-            $product = Product::find($product_id);
+            $product = Product::where('store_id', $store->id)->find($product_id);
             $cartableType = Product::class;
         } else {
-            $product = DigitalCard::find($product_id);
+            $product = DigitalCard::where('store_id', $store->id)->find($product_id);
             $cartableType = DigitalCard::class;
         }
         if (!$product) {

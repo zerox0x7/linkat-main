@@ -1,9 +1,148 @@
-@extends('themes.greenGame.layouts.app')
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
 
-@section('title', 'إتمام الطلب')
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إتمام الطلب - {{ $store->store_name ?? config('app.name') }}</title>
+    <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#57b5e7',
+                    secondary: '#8dd3c7'
+                },
+                borderRadius: {
+                    'none': '0px',
+                    'sm': '4px',
+                    DEFAULT: '8px',
+                    'md': '12px',
+                    'lg': '16px',
+                    'xl': '20px',
+                    '2xl': '24px',
+                    '3xl': '32px',
+                    'full': '9999px',
+                    'button': '8px'
+                }
+            }
+        }
+    }
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.min.css">
+    
+    <!-- CSRF Token for AJAX Requests -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <style>
+    :where([class^="ri-"])::before {
+        content: "\f3c2";
+    }
 
-@section('content')
-<div class="container mx-auto px-4 py-8">
+    body {
+        background-color: #0a1525;
+        color: #fff;
+        font-family: 'Inter', sans-serif;
+        direction: rtl;
+    }
+
+    .game-card img {
+        transform: scaleX(-1);
+    }
+
+    [class*="space-x-"]:not(.flex-row-reverse)> :not([hidden])~ :not([hidden]) {
+        --tw-space-x-reverse: 1;
+    }
+
+    .flex:not(.flex-row-reverse)>.space-x-1> :not([hidden])~ :not([hidden]) {
+        --tw-space-x-reverse: 1;
+    }
+
+    .flex:not(.flex-row-reverse)>.space-x-2> :not([hidden])~ :not([hidden]) {
+        --tw-space-x-reverse: 1;
+    }
+
+    .flex:not(.flex-row-reverse)>.space-x-4> :not([hidden])~ :not([hidden]) {
+        --tw-space-x-reverse: 1;
+    }
+
+    .flex:not(.flex-row-reverse)>.space-x-6> :not([hidden])~ :not([hidden]) {
+        --tw-space-x-reverse: 1;
+    }
+
+    .flex:not(.flex-row-reverse)>.space-x-8> :not([hidden])~ :not([hidden]) {
+        --tw-space-x-reverse: 1;
+    }
+
+    .glow-effect {
+        box-shadow: 0 0 15px rgba(87, 181, 231, 0.3);
+    }
+
+    .card-gradient {
+        background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+    }
+
+    .category-card {
+        transition: all 0.3s ease;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 15px rgba(87, 181, 231, 0.2);
+    }
+
+    .game-card {
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .game-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 5px 20px rgba(87, 181, 231, 0.3);
+    }
+
+    .game-card:hover img {
+        transform: scale(1.05);
+    }
+
+    .game-card img {
+        transition: transform 0.5s ease;
+    }
+
+    .badge {
+        text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    }
+
+    .epic-badge {
+        background: linear-gradient(90deg, #9333ea 0%, #c026d3 100%);
+    }
+
+    .rare-badge {
+        background: linear-gradient(90deg, #2563eb 0%, #38bdf8 100%);
+    }
+
+    .legendary-badge {
+        background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+    }
+
+    /* Checkout specific styles */
+    .glass-effect {
+        background: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    @include('themes.greenGame.partials.header')    
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
         <!-- Breadcrumbs -->
         <div class="flex items-center text-sm text-gray-400 mb-6">
             <a href="{{ route('home') }}" class="hover:text-primary">الرئيسية</a>
@@ -33,7 +172,7 @@
                         
                         <div class="space-y-4">
                             @forelse($paymentMethods as $method)
-                                <div class="flex items-center p-4 border rounded-lg @if(old('payment_method') == $method->code) border-primary bg-gray-800 @else border-gray-700 bg-gray-900/50 @endif hover:border-primary transition-all">
+                                <div class="flex items-center p-4 border rounded-lg @if(old('payment_method') == $method->code) border-primary bg-gray-800 @else border-gray-700 bg-gray-900/50 @endif hover:border-primary transition-all cursor-pointer">
                                     <input type="radio" name="payment_method" id="{{ $method->code }}" value="{{ $method->code }}" class="h-5 w-5 text-primary" @if(old('payment_method') == $method->code || $loop->first) checked @endif required>
                                     <label for="{{ $method->code }}" class="mr-3 flex flex-grow items-center cursor-pointer">
                                         @if($method->logo)
@@ -82,7 +221,7 @@
                     </div>
                     
                     <!-- زر إتمام الطلب -->
-                    <div class="mt-8">
+                    <div class="mt-6">
                         <button type="submit" class="w-full bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-button font-medium text-center hover:opacity-90 transition-all">
                             <i class="ri-secure-payment-line ml-2"></i> إتمام الطلب
                         </button>
@@ -92,7 +231,7 @@
             
             <!-- ملخص الطلب -->
             <div class="lg:col-span-1">
-                <div class="glass-effect rounded-lg p-6 sticky top-6">
+                <div class="glass-effect rounded-lg p-6">
                     <h2 class="text-xl font-bold text-white mb-4">ملخص الطلب</h2>
                     
                     <div class="space-y-4 divide-y divide-gray-700">
@@ -201,26 +340,37 @@
                 </div>
             </div>
         </div>
-    </div>
-@endsection
+    </main>
 
-@push('scripts')
-<script>
-    // تحديث طريقة الدفع عند الاختيار
-    const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
-    paymentMethods.forEach(method => {
-        method.addEventListener('change', function() {
-            paymentMethods.forEach(m => {
-                const container = m.closest('.border');
-                if (m.checked) {
-                    container.classList.add('border-primary', 'bg-gray-800');
-                    container.classList.remove('border-gray-700', 'bg-gray-900/50');
-                } else {
-                    container.classList.remove('border-primary', 'bg-gray-800');
-                    container.classList.add('border-gray-700', 'bg-gray-900/50');
-                }
+    @include('themes.greenGame.partials.footer')
+    
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // إعداد ال csrf token مع كل طلبات ajax
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            }
+        });
+        
+        // تحديث طريقة الدفع عند الاختيار
+        const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+        paymentMethods.forEach(method => {
+            method.addEventListener('change', function() {
+                paymentMethods.forEach(m => {
+                    const container = m.closest('.border');
+                    if (m.checked) {
+                        container.classList.add('border-primary', 'bg-gray-800');
+                        container.classList.remove('border-gray-700', 'bg-gray-900/50');
+                    } else {
+                        container.classList.remove('border-primary', 'bg-gray-800');
+                        container.classList.add('border-gray-700', 'bg-gray-900/50');
+                    }
+                });
             });
         });
-    });
-</script>
-@endpush 
+    </script>
+</body>
+
+</html> 

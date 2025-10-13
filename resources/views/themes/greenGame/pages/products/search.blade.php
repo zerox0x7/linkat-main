@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>نتائج البحث | {{ $store->store_name ?? 'متجر الألعاب' }}</title>
     <script src="https://cdn.tailwindcss.com/3.4.16"></script>
     <script>
@@ -90,6 +91,36 @@
     input[type="number"]::-webkit-outer-spin-button {
         -webkit-appearance: none;
         margin: 0;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -20px);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+    }
+
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+        to {
+            opacity: 0;
+            transform: translate(-50%, -20px);
+        }
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    .animate-fade-out {
+        animation: fadeOut 0.3s ease-out forwards;
     }
     </style>
 </head>
@@ -243,33 +274,141 @@
     <script>
     // Add to cart functionality
     function addToCart(productId) {
-        // Add loading state
+        // Add visual feedback immediately
         const button = event.target.closest('button');
-        const originalContent = button.innerHTML;
-        button.innerHTML = '<i class="ri-loader-4-line animate-spin"></i>';
-        button.disabled = true;
+        let originalContent = '';
         
-        // Simulate API call (replace with actual AJAX call)
-        setTimeout(() => {
-            button.innerHTML = '<i class="ri-check-line"></i>';
-            button.classList.remove('text-primary', 'bg-primary/10');
-            button.classList.add('text-white', 'bg-green-500');
-            
-            // Update cart count if exists
-            const cartCounter = document.querySelector('.ri-shopping-cart-2-line').nextElementSibling;
-            if (cartCounter) {
-                const currentCount = parseInt(cartCounter.textContent);
-                cartCounter.textContent = currentCount + 1;
-            }
-            
-            // Reset button after 2 seconds
-            setTimeout(() => {
-                button.innerHTML = originalContent;
-                button.classList.remove('text-white', 'bg-green-500');
-                button.classList.add('text-primary', 'bg-primary/10');
+        if (button) {
+            button.disabled = true;
+            originalContent = button.innerHTML;
+            button.innerHTML = '<i class="ri-loader-4-line animate-spin"></i>';
+        }
+
+        // Function to reset button
+        const resetButton = () => {
+            if (button) {
                 button.disabled = false;
-            }, 2000);
-        }, 1000);
+                button.innerHTML = originalContent;
+            }
+        };
+
+        // Fallback timeout
+        const timeoutId = setTimeout(resetButton, 3000);
+
+        fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                product_type: 'product',
+                product_id: productId,
+                quantity: 1
+            })
+        })
+        .then(response => {
+            // Clear the timeout since we got a response
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Show success state
+                if (button) {
+                    button.innerHTML = '<i class="ri-check-line"></i>';
+                    button.classList.remove('text-primary', 'bg-primary/10');
+                    button.classList.add('text-white', 'bg-green-500');
+                }
+                
+                // Update cart count in header
+                if (window.CartManager) {
+                    window.CartManager.syncCartCount();
+                } else {
+                    updateCartCount();
+                }
+                
+                // Show success message (optional)
+                showNotification('تمت إضافة المنتج إلى السلة بنجاح', 'success');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    if (button) {
+                        button.innerHTML = originalContent;
+                        button.classList.remove('text-white', 'bg-green-500');
+                        button.classList.add('text-primary', 'bg-primary/10');
+                        button.disabled = false;
+                    }
+                }, 2000);
+            } else {
+                resetButton();
+                showNotification(data.message || 'حدث خطأ أثناء إضافة المنتج', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error adding to cart:', error);
+            resetButton();
+            showNotification('حدث خطأ أثناء إضافة المنتج للسلة', 'error');
+        });
+    }
+
+    // Update cart count
+    function updateCartCount() {
+        fetch('/cart/count', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const count = data.cart_count || 0;
+            
+            // Update all cart count elements
+            const cartCountElements = document.querySelectorAll('[data-cart-count]');
+            cartCountElements.forEach(element => {
+                element.textContent = count;
+                element.setAttribute('data-cart-count', count);
+            });
+            
+            // Also update any other cart counter elements
+            const cartBadges = document.querySelectorAll('.cart-count, #cart-count');
+            cartBadges.forEach(badge => {
+                badge.textContent = count;
+            });
+
+            // Update cart icon badge in header
+            const headerCartBadge = document.querySelector('.ri-shopping-cart-2-line')?.parentElement?.querySelector('span');
+            if (headerCartBadge) {
+                headerCartBadge.textContent = count;
+            }
+        })
+        .catch(error => {
+            console.error('Error updating cart count:', error);
+        });
+    }
+
+    // Show notification
+    function showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg shadow-lg z-50 ${
+            type === 'success' ? 'bg-green-500' : 'bg-red-500'
+        } text-white flex items-center gap-2 animate-fade-in`;
+        notification.innerHTML = `
+            <i class="ri-${type === 'success' ? 'check' : 'error-warning'}-line"></i>
+            <span>${message}</span>
+        `;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('animate-fade-out');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
 
     // Search functionality enhancements

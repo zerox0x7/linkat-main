@@ -9,7 +9,7 @@
 <div class="container mx-auto px-4 py-8">
     <div class="glass-effect rounded-lg p-6 md:p-8">
         <h1 class="text-2xl md:text-3xl font-bold text-white mb-6">{{ $page->title }}</h1>
-        
+        vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
         <div class="prose prose-invert max-w-none">
             {!! $page->content !!}
         </div>

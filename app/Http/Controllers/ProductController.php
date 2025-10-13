@@ -27,7 +27,9 @@ class ProductController extends Controller
            $name = $store->name;
 
        
-        $query = Product::query()->whereIn('status', ['active', 'out-of-stock']);
+        $query = Product::query()
+            ->where('store_id', $store->id)
+            ->whereIn('status', ['active', 'out-of-stock']);
 
         
         // تعريف متغير $currentCategory بشكل افتراضي
@@ -112,7 +114,8 @@ class ProductController extends Controller
         
         $products = $query->paginate(12);
         
-        $categories = Category::where('is_active', true)
+        $categories = Category::where('store_id', $store->id)
+            ->where('is_active', true)
             ->orderBy('sort_order')
             ->get();
 
@@ -226,9 +229,12 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Contracts\View\View
      */
-    public function featured()
+    public function featured(Request $request)
     {
-        $products = Product::where('is_featured', true)
+        $store = $request->attributes->get('store');
+        
+        $products = Product::where('store_id', $store->id)
+            ->where('is_featured', true)
             ->whereIn('status', ['active', 'out-of-stock'])
             ->with('category')
             ->withAvg(['reviews' => function($query) {
@@ -244,9 +250,12 @@ class ProductController extends Controller
      *
      * @return \Illuminate\Contracts\View\View
      */
-    public function bestSellers()
+    public function bestSellers(Request $request)
     {
-        $products = Product::whereIn('status', ['active', 'out-of-stock'])
+        $store = $request->attributes->get('store');
+        
+        $products = Product::where('store_id', $store->id)
+            ->whereIn('status', ['active', 'out-of-stock'])
             ->orderBy('sales_count', 'desc')
             ->with('category')
             ->withAvg(['reviews' => function($query) {
@@ -288,8 +297,10 @@ class ProductController extends Controller
      * @param  string  $tag
      * @return \Illuminate\Contracts\View\View
      */
-    public function productByTag($productId, $tag = null)
+    public function productByTag(Request $request, $productId, $tag = null)
     {   
+        $store = $request->attributes->get('store');
+        
         // إذا كانت البيانات في التنسيق القديم (في حالة tag/{tag} فقط)
         if ($tag === null && strpos($productId, '-') !== false) {
             $tagParts = explode('-', $productId, 2);
@@ -303,7 +314,8 @@ class ProductController extends Controller
         
         try {
             // الحصول على المنتج بواسطة المعرف مع التقييمات
-            $product = Product::where('id', $productId)
+            $product = Product::where('store_id', $store->id)
+                ->where('id', $productId)
                 ->whereIn('status', ['active', 'out-of-stock'])
                 ->with(['category', 'reviews' => function($query) {
                     $query->where('is_approved', true)
@@ -343,7 +355,8 @@ class ProductController extends Controller
                 $product->increment('views_count');
                 
                 // منتجات ذات صلة بنفس التاغ
-                $relatedProducts = Product::where('id', '!=', $product->id)
+                $relatedProducts = Product::where('store_id', $store->id)
+                    ->where('id', '!=', $product->id)
                     ->whereIn('status', ['active', 'out-of-stock'])
                     ->where(function ($q) use ($tagName) {
                         $q->whereJsonContains('tags', $tagName)
@@ -440,9 +453,11 @@ class ProductController extends Controller
      */
     public function filterPopularProducts(Request $request)
     {
+        $store = $request->attributes->get('store');
         $filter = $request->get('filter', 'best_selling');
         
-        $query = Product::whereIn('status', ['active', 'out-of-stock'])
+        $query = Product::where('store_id', $store->id)
+            ->whereIn('status', ['active', 'out-of-stock'])
             ->with('category')
             ->withAvg(['reviews' => function($query) {
                 $query->where('is_approved', true);
@@ -500,7 +515,9 @@ class ProductController extends Controller
         $theme = $store->active_theme;
         $name = $store->name;
 
-        $query = Product::query()->whereIn('status', ['active', 'out-of-stock']);
+        $query = Product::query()
+            ->where('store_id', $store->id)
+            ->whereIn('status', ['active', 'out-of-stock']);
         $searchTerm = $request->get('q', '');
         
         if (!empty($searchTerm)) {
@@ -543,7 +560,8 @@ class ProductController extends Controller
                           }], 'rating')
                           ->paginate(12);
 
-        $categories = Category::where('is_active', true)
+        $categories = Category::where('store_id', $store->id)
+                            ->where('is_active', true)
                             ->orderBy('sort_order')
                             ->get();
 

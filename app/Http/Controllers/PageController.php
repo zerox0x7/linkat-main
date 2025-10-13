@@ -15,19 +15,41 @@ class PageController extends Controller
      */
     public function show($slug)
     {
-        // البحث عن الصفحة في قاعدة البيانات أولاً
-        $page = \App\Models\Page::where('slug', $slug)
-                ->where('is_active', true)
-                ->first();
+        // الحصول على المتجر من الطلب
+        $store = request()->attributes->get('store');
+        
+        // البحث عن الصفحة الثابتة في قاعدة البيانات أولاً (بغض النظر عن الحالة)
+        if ($store) {
+            $staticPage = \App\Models\StaticPage::where('slug', $slug)
+                    ->where('store_id', $store->id)
+                    ->first();
+            
+            // إذا كانت الصفحة موجودة
+            if ($staticPage) {
+                // إذا كانت الصفحة غير مفعلة، عرض صفحة 404
+                if (!$staticPage->is_active) {
+                    abort(404);
+                }
                 
-        if ($page) {
-            return view(Theme::getThemeView('pages.dynamic'), [
-                'title' => $page->title,
-                'page' => $page
-            ]);
+                // الصفحة مفعلة، عرضها
+                $theme = $store->active_theme;
+                
+                // التحقق من وجود الصفحة في القالب النشط
+                $dynamicView = "themes.{$theme}.pages.dynamic";
+                
+                if (!view()->exists($dynamicView)) {
+                    // إذا لم توجد، استخدم القالب الافتراضي
+                    $dynamicView = 'themes.default.pages.dynamic';
+                }
+                
+                return view($dynamicView, [
+                    'title' => $staticPage->title,
+                    'page' => $staticPage
+                ]);
+            }
         }
         
-        // التحقق من وجود الصفحة الثابتة المطلوبة
+        // الصفحة غير موجودة في قاعدة البيانات، التحقق من الصفحات الثابتة المبرمجة
         $validPages = ['terms', 'privacy', 'refund', 'faq', 'about', 'contact'];
         
         if (!in_array($slug, $validPages)) {

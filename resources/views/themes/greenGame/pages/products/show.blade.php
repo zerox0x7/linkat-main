@@ -221,9 +221,15 @@
                     <div class="flex gap-4">
                         <button
                             class="flex-1 bg-primary text-white px-6 py-4 rounded-button flex items-center justify-center gap-2 hover:bg-primary/90 transition duration-300"
-                            id="buy-now" onclick="addToCart({{ $product->id }})">
+                            id="buy-now" onclick="buyNow({{ $product->id }})">
+                            <i class="ri-shopping-bag-line"></i>
+                            <span>اشتر الآن</span>
+                        </button>
+                        <button
+                            class="flex-1 bg-green-500 text-white px-6 py-4 rounded-button flex items-center justify-center gap-2 hover:bg-green-600 transition duration-300"
+                            id="add-to-cart" onclick="addToCart({{ $product->id }})">
                             <i class="ri-shopping-cart-line"></i>
-                            <span>شراء الآن</span>
+                            <span>أضف للسلة</span>
                         </button>
                         <button
                             class="w-14 h-14 bg-[#1e293b] text-primary rounded-button flex items-center justify-center hover:bg-primary/10 transition duration-300">
@@ -444,6 +450,71 @@
     </script>
     
     <script id="add-to-cart">
+    // Buy now functionality - Add to cart and redirect to cart page
+    function buyNow(productId) {
+        const quantity = parseInt(document.getElementById('quantity').textContent);
+        const selectedVersion = document.querySelector('#version-options .bg-primary');
+        const versionData = selectedVersion ? {
+            name: selectedVersion.dataset.version,
+            price: selectedVersion.dataset.price
+        } : null;
+
+        // Disable button and show loading
+        const buyBtn = document.getElementById('buy-now');
+        const originalContent = buyBtn.innerHTML;
+        buyBtn.disabled = true;
+        buyBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i><span>جاري المعالجة...</span>';
+
+        fetch('/cart/add', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                product_type: 'product',
+                product_id: productId,
+                quantity: quantity,
+                version: versionData
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count immediately before redirect
+                if (data.cart_count !== undefined && window.CartManager) {
+                    window.CartManager.updateCartCount(data.cart_count);
+                }
+                
+                // Short delay to show the update, then redirect to cart
+                setTimeout(() => {
+                    window.location.href = '/cart';
+                }, 300);
+            } else {
+                // Reset button and show error
+                buyBtn.disabled = false;
+                buyBtn.innerHTML = originalContent;
+                
+                if (window.CartManager) {
+                    window.CartManager.showNotification(data.message || 'حدث خطأ في إضافة المنتج', 'error');
+                } else {
+                    showNotification(data.message || 'حدث خطأ في إضافة المنتج', 'error');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            buyBtn.disabled = false;
+            buyBtn.innerHTML = originalContent;
+            
+            if (window.CartManager) {
+                window.CartManager.showNotification('حدث خطأ في إضافة المنتج', 'error');
+            } else {
+                showNotification('حدث خطأ في إضافة المنتج', 'error');
+            }
+        });
+    }
+
     // Add to cart functionality
     function addToCart(productId) {
         const quantity = parseInt(document.getElementById('quantity').textContent);
@@ -453,6 +524,12 @@
             price: selectedVersion.dataset.price
         } : null;
 
+        // Disable button and show loading
+        const addBtn = document.getElementById('add-to-cart');
+        const originalContent = addBtn.innerHTML;
+        addBtn.disabled = true;
+        addBtn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i>';
+
         fetch('/cart/add', {
             method: 'POST',
             headers: {
@@ -460,6 +537,7 @@
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
             },
             body: JSON.stringify({
+                product_type: 'product',
                 product_id: productId,
                 quantity: quantity,
                 version: versionData
@@ -467,21 +545,43 @@
         })
         .then(response => response.json())
         .then(data => {
+            // Reset button
+            addBtn.disabled = false;
+            addBtn.innerHTML = originalContent;
+            
             if (data.success) {
-                // Show success message
-                showNotification('تم إضافة المنتج إلى السلة بنجاح!', 'success');
-                // Update cart count if element exists
-                const cartCount = document.querySelector('.cart-count, .absolute.w-5.h-5');
-                if (cartCount && data.cart_count) {
-                    cartCount.textContent = data.cart_count;
+                // Update cart count immediately using CartManager
+                if (data.cart_count !== undefined && window.CartManager) {
+                    window.CartManager.updateCartCount(data.cart_count);
+                    window.CartManager.showNotification('تم إضافة المنتج إلى السلة بنجاح!', 'success');
+                } else {
+                    // Fallback for older code
+                    showNotification('تم إضافة المنتج إلى السلة بنجاح!', 'success');
+                    const cartCountElements = document.querySelectorAll('.cart-count');
+                    if (cartCountElements.length > 0 && data.cart_count !== undefined) {
+                        cartCountElements.forEach(element => {
+                            element.textContent = data.cart_count;
+                        });
+                    }
                 }
             } else {
-                showNotification(data.message || 'حدث خطأ في إضافة المنتج', 'error');
+                if (window.CartManager) {
+                    window.CartManager.showNotification(data.message || 'حدث خطأ في إضافة المنتج', 'error');
+                } else {
+                    showNotification(data.message || 'حدث خطأ في إضافة المنتج', 'error');
+                }
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('حدث خطأ في إضافة المنتج', 'error');
+            addBtn.disabled = false;
+            addBtn.innerHTML = originalContent;
+            
+            if (window.CartManager) {
+                window.CartManager.showNotification('حدث خطأ في إضافة المنتج', 'error');
+            } else {
+                showNotification('حدث خطأ في إضافة المنتج', 'error');
+            }
         });
     }
 

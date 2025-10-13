@@ -96,6 +96,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','customer'])->group(f
     Route::resource('pages', \App\Http\Controllers\Admin\PageController::class);
     Route::get('home-manager', [\App\Http\Controllers\Admin\PageController::class, 'homeManager'])->name('pages.home-manager');
     
+    // إدارة الصفحات الثابتة
+    Route::resource('static-pages', \App\Http\Controllers\Admin\StaticPagesController::class);
+    
     // OO_OOOc OU^OO"O OU,U?U^OO
     Route::resource('menu-links', \App\Http\Controllers\Admin\MenuLinkController::class);
     
@@ -200,4 +203,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth','customer'])->group(f
     Route::get('online-users', [\App\Http\Controllers\Admin\OnlineUsersController::class, 'index'])->name('online-users.index');
     Route::post('online-users/update-activity', [\App\Http\Controllers\Admin\OnlineUsersController::class, 'updateActivity'])->name('online-users.update-activity');
     Route::post('online-users/clear-inactive', [\App\Http\Controllers\Admin\OnlineUsersController::class, 'clearInactive'])->name('online-users.clear-inactive');
+
+    // إدارة الثيمات وتخصيصها
+    Route::prefix('themes')->name('themes.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\ThemeController::class, 'index'])->name('index');
+        Route::get('/customize', [\App\Http\Controllers\Admin\ThemeController::class, 'customize'])->name('customize');
+        Route::post('/update', [\App\Http\Controllers\Admin\ThemeController::class, 'update'])->name('update');
+        Route::post('/switch', [\App\Http\Controllers\Admin\ThemeController::class, 'switchTheme'])->name('switch');
+        Route::delete('/delete-image', [\App\Http\Controllers\Admin\ThemeController::class, 'deleteImage'])->name('delete-image');
+    });
 }); 

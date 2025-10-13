@@ -25,7 +25,10 @@ class ProductSearch extends Component
 
     public function loadInitialData()
     {
-        $this->categories = Category::orderBy('name')->get();
+        $store = request()->attributes->get('store');
+        $this->categories = Category::where('store_id', $store->id)
+            ->orderBy('name')
+            ->get();
         $this->searchProducts();
     }
 
@@ -51,7 +54,8 @@ class ProductSearch extends Component
 
     public function searchProducts()
     {
-        $query = Product::query();
+        $store = request()->attributes->get('store');
+        $query = Product::where('store_id', $store->id);
         
         if (!empty($this->searchTerm)) {
             $query->where(function($q) {
@@ -65,7 +69,8 @@ class ProductSearch extends Component
 
     public function searchCategories()
     {
-        $query = Category::query();
+        $store = request()->attributes->get('store');
+        $query = Category::where('store_id', $store->id);
         
         if (!empty($this->searchTerm)) {
             $query->where('name', 'like', '%' . $this->searchTerm . '%');

@@ -83,6 +83,9 @@ class HeaderCustomizer extends Component
     public $mobileMenuEnabled = true;
     public $mobileSearchEnabled = true;
     public $mobileCartEnabled = true;
+    
+    // Settings
+    public $settingsEnabled = true;
 
     protected $rules = [
         'headerHeight' => 'nullable|integer|min:60|max:200',
@@ -189,6 +192,9 @@ class HeaderCustomizer extends Component
             $this->mobileMenuEnabled = $settings->mobile_menu_enabled ?? true;
             $this->mobileSearchEnabled = $settings->mobile_search_enabled ?? true;
             $this->mobileCartEnabled = $settings->mobile_cart_enabled ?? true;
+            
+            // Settings
+            $this->settingsEnabled = $settings->settings_enabled ?? true;
             
         } catch (\Exception $e) {
             // Set default values if loading fails
@@ -477,6 +483,9 @@ class HeaderCustomizer extends Component
                 'mobile_menu_enabled' => $this->mobileMenuEnabled ?? true,
                 'mobile_search_enabled' => $this->mobileSearchEnabled ?? true,
                 'mobile_cart_enabled' => $this->mobileCartEnabled ?? true,
+                
+                // Settings
+                'settings_enabled' => $this->settingsEnabled ?? true,
             ];
 
             // Save to database with store ID

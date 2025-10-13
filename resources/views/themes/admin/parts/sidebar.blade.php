@@ -141,16 +141,57 @@
                          <span class="font-medium">الرئيسية</span>
                      </a>
                      
-                     <a href="{{ route('admin.customizer.products-page') }}"
-                         class="flex items-center gap-3 {{ request()->routeIs('admin.customizer.products-page') ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border-primary/50 text-primary' : 'bg-[#0f1623] border-[#2a3548] text-gray-300 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:border-primary/30 hover:text-white' }} p-3 rounded-lg border transition-all duration-300 group shadow-md hover:shadow-lg">
-                         <div class="w-6 h-6 rounded bg-gradient-to-r from-orange-500/20 to-red-500/20 flex items-center justify-center">
-                             <i class="ri-shopping-bag-line text-sm {{ request()->routeIs('admin.customizer.products-page') ? 'text-primary' : 'text-orange-400 group-hover:text-primary' }} transition-colors"></i>
-                         </div>
-                         <span class="font-medium">المنتجات</span>
-                     </a>
-                 </div>     
-             </div>
-         </div> 
+                    <a href="{{ route('admin.customizer.products-page') }}"
+                        class="flex items-center gap-3 {{ request()->routeIs('admin.customizer.products-page') ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border-primary/50 text-primary' : 'bg-[#0f1623] border-[#2a3548] text-gray-300 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:border-primary/30 hover:text-white' }} p-3 rounded-lg border transition-all duration-300 group shadow-md hover:shadow-lg">
+                        <div class="w-6 h-6 rounded bg-gradient-to-r from-orange-500/20 to-red-500/20 flex items-center justify-center">
+                            <i class="ri-shopping-bag-line text-sm {{ request()->routeIs('admin.customizer.products-page') ? 'text-primary' : 'text-orange-400 group-hover:text-primary' }} transition-colors"></i>
+                        </div>
+                        <span class="font-medium">المنتجات</span>
+                    </a>
+                    
+                    <!-- الصفحات الثابتة مع قائمة فرعية -->
+                    <div class="s-dropdown-item-nested">
+                        <button class="s-dropdown-toggle-nested flex items-center justify-between w-full {{ request()->routeIs('admin.static-pages.*') ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border-primary/50 text-primary' : 'bg-[#0f1623] border-[#2a3548] text-gray-300 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:border-primary/30 hover:text-white' }} p-3 rounded-lg border transition-all duration-300 group shadow-md hover:shadow-lg"
+                            onclick="toggleNestedDropdown('static-pages')">
+                            <div class="flex items-center gap-3">
+                                <div class="w-6 h-6 rounded bg-gradient-to-r from-cyan-500/20 to-blue-500/20 flex items-center justify-center">
+                                    <i class="ri-file-text-line text-sm {{ request()->routeIs('admin.static-pages.*') ? 'text-primary' : 'text-cyan-400 group-hover:text-primary' }} transition-colors"></i>
+                                </div>
+                                <span class="font-medium">الصفحات الثابتة</span>
+                            </div>
+                            <i class="ri-arrow-down-s-line text-gray-400 group-hover:text-primary transform transition-all duration-300" id="static-pages-arrow"></i>
+                        </button>
+                        <div class="s-dropdown-content-nested mr-6 mt-2 space-y-2" id="static-pages-content" style="display: none;">
+                            <a href="{{ route('admin.static-pages.index') }}"
+                                class="flex items-center gap-2 {{ request()->routeIs('admin.static-pages.index') ? 'bg-gradient-to-r from-primary/10 to-secondary/10 text-primary' : 'bg-[#0a0f1a] text-gray-400 hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 hover:text-white' }} p-2 rounded-lg border border-[#1a2234] transition-all duration-300 text-sm">
+                                <i class="ri-list-check text-xs"></i>
+                                <span>جميع الصفحات</span>
+                            </a>
+                            <a href="{{ route('admin.static-pages.create') }}"
+                                class="flex items-center gap-2 {{ request()->routeIs('admin.static-pages.create') ? 'bg-gradient-to-r from-primary/10 to-secondary/10 text-primary' : 'bg-[#0a0f1a] text-gray-400 hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 hover:text-white' }} p-2 rounded-lg border border-[#1a2234] transition-all duration-300 text-sm">
+                                <i class="ri-add-circle-line text-xs"></i>
+                                <span>إضافة صفحة جديدة</span>
+                            </a>
+                            @php
+                                $staticPages = \App\Models\StaticPage::orderBy('created_at', 'desc')->limit(5)->get();
+                            @endphp
+                            @if($staticPages->count() > 0)
+                                <div class="border-t border-[#1a2234] pt-2 mt-2">
+                                    <span class="text-xs text-gray-500 px-2 block mb-2">الصفحات الأخيرة:</span>
+                                    @foreach($staticPages as $page)
+                                        <a href="{{ route('admin.static-pages.edit', $page->id) }}"
+                                            class="flex items-center gap-2 bg-[#0a0f1a] text-gray-400 hover:bg-gradient-to-r hover:from-primary/5 hover:to-secondary/5 hover:text-white p-2 rounded-lg border border-[#1a2234] transition-all duration-300 text-sm">
+                                            <i class="ri-file-line text-xs"></i>
+                                            <span class="truncate">{{ $page->title ?? 'صفحة' }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>     
+            </div>
+        </div>
 
          <!-- تخصيص الواجهة المتقدمة -->
          <div class="mb-6">
@@ -238,7 +279,39 @@
                      </a> -->
                  </div>
              </div>
-         </div> 
+         </div>
+
+         <!-- إدارة الثيمات -->
+         <div class="mb-6">
+             <div class="s-dropdown-item">
+                 <button class="s-dropdown-toggle flex items-center justify-between w-full p-3 rounded-xl bg-gradient-to-r from-[#121827] to-[#1a2234] border border-[#2a3548] hover:border-primary/30 transition-all duration-300 group shadow-lg hover:shadow-xl"
+                     onclick="toggleDropdown('themes')">
+                     <div class="flex items-center gap-3">
+                         <div class="w-8 h-8 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-300">
+                             <i class="ri-paint-brush-line text-purple-400 group-hover:text-primary transition-colors"></i>
+                         </div>
+                         <span class="text-gray-300 font-medium group-hover:text-white transition-colors">الثيمات</span>
+                     </div>
+                     <i class="ri-arrow-down-s-line text-gray-400 group-hover:text-primary transform transition-all duration-300" id="themes-arrow"></i>
+                 </button>
+                 <div class="s-dropdown-content mr-4 mt-3 space-y-2" id="themes-content">
+                     <a href="{{ route('admin.themes.index') }}"
+                         class="flex items-center gap-3 {{ request()->routeIs('admin.themes.index') ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border-primary/50 text-primary' : 'bg-[#0f1623] border-[#2a3548] text-gray-300 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:border-primary/30 hover:text-white' }} p-3 rounded-lg border transition-all duration-300 group shadow-md hover:shadow-lg">
+                         <div class="w-6 h-6 rounded bg-gradient-to-r from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                             <i class="ri-layout-grid-line text-sm {{ request()->routeIs('admin.themes.index') ? 'text-primary' : 'text-purple-400 group-hover:text-primary' }} transition-colors"></i>
+                         </div>
+                         <span class="font-medium">إدارة الثيمات</span>
+                     </a>
+                     <a href="{{ route('admin.themes.customize') }}"
+                         class="flex items-center gap-3 {{ request()->routeIs('admin.themes.customize') ? 'bg-gradient-to-r from-primary/20 to-secondary/20 border-primary/50 text-primary' : 'bg-[#0f1623] border-[#2a3548] text-gray-300 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 hover:border-primary/30 hover:text-white' }} p-3 rounded-lg border transition-all duration-300 group shadow-md hover:shadow-lg">
+                         <div class="w-6 h-6 rounded bg-gradient-to-r from-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                             <i class="ri-brush-3-line text-sm {{ request()->routeIs('admin.themes.customize') ? 'text-primary' : 'text-purple-400 group-hover:text-primary' }} transition-colors"></i>
+                         </div>
+                         <span class="font-medium">تخصيص الثيم النشط</span>
+                     </a>
+                 </div>
+             </div>
+         </div>
 
          <!-- معلومات المستخدم -->
          <div class="mt-auto">
@@ -297,6 +370,19 @@
          arrow.classList.toggle('rotate-180');
      }
 
+    function toggleNestedDropdown(section) {
+        const content = document.getElementById(section + '-content');
+        const arrow = document.getElementById(section + '-arrow');
+
+        if (content.style.display === 'none' || content.style.display === '') {
+            content.style.display = 'block';
+            arrow.classList.add('rotate-180');
+        } else {
+            content.style.display = 'none';
+            arrow.classList.remove('rotate-180');
+        }
+    }
+
      // التحقق من الصفحة الحالية وفتح القسم المناسب عند تحميل الصفحة
      document.addEventListener('DOMContentLoaded', function() {
          // الخطوة 1: التحقق من روابط إدارة المتجر
@@ -319,14 +405,20 @@
              // فتح قسم لوحة التحكم إذا كان موجوداً
              toggleDropdown('dashboard');
 
-        @elseif (request()->routeIs('admin.home-sections.*') || request()->routeIs('admin.customizer.products-page'))
-            toggleDropdown('settings');
+       @elseif (request()->routeIs('admin.home-sections.*') || request()->routeIs('admin.customizer.products-page') || request()->routeIs('admin.static-pages.*'))
+           toggleDropdown('settings');
+           @if(request()->routeIs('admin.static-pages.*'))
+               toggleNestedDropdown('static-pages');
+           @endif
     
         @elseif (request()->routeIs('admin.customizer.*'))
             toggleDropdown('advanced-settings');
     
         @elseif (request()->routeIs('admin.products.advanced-coupon'))
             toggleDropdown('general-settings');
+
+        @elseif (request()->routeIs('admin.themes.*'))
+            toggleDropdown('themes');
 
          @else
              // الخطوة 4: فتح قسم إدارة المتجر كقيمة افتراضية

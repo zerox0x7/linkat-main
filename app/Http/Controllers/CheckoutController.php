@@ -97,8 +97,9 @@ class CheckoutController extends Controller
             ->get();
         
         // الحصول على البيانات المطلوبة للثيم
-        $homePage = \App\Models\HomePage::first() ?? new \App\Models\HomePage();
-        $headerSettings = \App\Models\HeaderSettings::first() ?? new \App\Models\HeaderSettings();
+        $store = $request->attributes->get('store');
+        $homePage = \App\Models\HomePage::where('store_id', $store->id)->first() ?? new \App\Models\HomePage();
+        $headerSettings = \App\Models\HeaderSettings::getSettings($store->id);
         
         // تحقق صارم من الكوبون عند عرض صفحة الدفع
         $couponData = session('coupon');
@@ -129,7 +130,7 @@ class CheckoutController extends Controller
             }
         }
         
-        return view('themes.'.$theme.'.pages.checkout.index', compact('cart', 'paymentMethods', 'homePage', 'headerSettings'));
+        return view('themes.'.$theme.'.pages.checkout.index', compact('cart', 'paymentMethods', 'homePage', 'headerSettings', 'store'));
     }
     
     /**

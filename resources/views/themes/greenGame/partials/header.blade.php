@@ -907,10 +907,13 @@
                         </a>
                         @endif
                         
+                       @if($headerSettings->settings_enabled)
                         <a href="#" class="text-gray-400 hover:text-primary flex items-center space-x-2 py-2 {{ $headerSettings->header_smooth_transitions ? 'header-nav-item' : '' }}">
                             <i class="ri-settings-4-line"></i>
                             <span>الإعدادات</span>
                         </a>
+                        @endif
+                      
                     </div>
                 </nav>
                 @endif

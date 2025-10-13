@@ -177,8 +177,15 @@
          @if($homePage->hero_enabled)
         <div class="relative rounded-xl overflow-hidden mb-8 h-64">
             <div class="absolute inset-0 bg-gradient-to-l from-[#0f172a]/90 to-transparent z-10"></div>
-            <img src="{{asset('storage/'. $homePage->hero_background_image)}}"
-                alt="Special Rewards" class="w-full h-full object-cover object-top">
+            @if($homePage->hero_background_image)
+                <img src="{{asset('storage/'. $homePage->hero_background_image)}}"
+                    alt="Special Rewards" class="w-full h-full object-cover object-top">
+            @elseif(\App\Models\Setting::get('store_logo'))
+                <img src="{{ asset('storage/' . \App\Models\Setting::get('store_logo')) }}"
+                    alt="{{ \App\Models\Setting::get('store_name', 'Store Logo') }}" class="w-full h-full object-contain p-8">
+            @else
+                <div class="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20"></div>
+            @endif
             <div class="absolute top-0 left-0 w-full h-full flex flex-col justify-center z-20 px-8">
                 <div class="text-sm text-green-400 font-semibold mb-1">{{$homePage->hero_button1_text}}</div>
                 <h2 class="text-3xl font-bold text-white mb-2">{{$homePage->hero_title}}</h2>
@@ -320,14 +327,22 @@
                                 <i class="ri-money-dollar-circle-line  text-green-400 text-sm"></i>
                             </div>
                         </div>
-                        <div class="flex justify-between items-center">
+                        <div class="flex flex-col gap-2">
                             <span class="text-xs text-gray-400">{{$product->badge_text ?? 'No Badge'}}</span>
-                            <button
-                                class="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-1.5 rounded-button flex items-center space-x-1 whitespace-nowrap"
-                                onclick="event.preventDefault(); event.stopPropagation(); addToCart({{ $product->id }});">
-                                <i class="ri-shopping-cart-2-line text-xs"></i>
-                                                    <span>Add to Cart</span>
-                            </button>
+                            <div class="flex gap-2">
+                                <button
+                                    class="flex-1 bg-primary hover:bg-blue-600 text-white text-sm px-4 py-1.5 rounded-button flex items-center justify-center space-x-1 whitespace-nowrap"
+                                    onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{{ route('products.show', $product->share_slug ?: $product->slug) }}';">
+                                    <i class="ri-shopping-bag-line text-xs"></i>
+                                    <span>اشتر الآن</span>
+                                </button>
+                                <button
+                                    class="flex-1 bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-1.5 rounded-button flex items-center justify-center space-x-1 whitespace-nowrap"
+                                    onclick="event.preventDefault(); event.stopPropagation(); addToCart({{ $product->id }});">
+                                    <i class="ri-shopping-cart-2-line text-xs"></i>
+                                    <span>أضف للسلة</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </a>
@@ -454,23 +469,39 @@
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 @foreach($brandProducts as $product)
-                <a href="{{ route('products.show', $product->share_slug ?: $product->slug) }}" class="bg-[#1e293b] rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-gray-700 transition-all">
-                    <div class="w-full h-32 rounded-lg overflow-hidden mb-2">
-                        <img src="{{asset('storage/'.$product->main_image)}}" alt="{{$product->name}}" class="w-full h-full object-cover">
+                <div class="bg-[#1e293b] rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-gray-700 transition-all">
+                    <a href="{{ route('products.show', $product->share_slug ?: $product->slug) }}" class="w-full">
+                        <div class="w-full h-32 rounded-lg overflow-hidden mb-2">
+                            <img src="{{asset('storage/'.$product->main_image)}}" alt="{{$product->name}}" class="w-full h-full object-cover">
+                        </div>
+                        <span class="text-sm text-center block">{{$product->name}}</span>
+                        <div class="rating-stars mt-1 flex justify-center">
+                            <i class="ri-star-fill filled text-xs text-yellow-400"></i>
+                            <i class="ri-star-fill filled text-xs text-yellow-400"></i>
+                            <i class="ri-star-fill filled text-xs text-yellow-400"></i>
+                            <i class="ri-star-fill filled text-xs text-yellow-400"></i>
+                            <i class="ri-star-half-fill filled text-xs text-yellow-400"></i>
+                        </div>
+                        <div class="text-xs font-semibold bg-gray-800 px-2 py-1 rounded-full flex items-center justify-center mt-2">
+                            <span class="text-yellow-400 mr-1">{{$product->price}}</span>
+                            <i class="ri-coin-line text-yellow-400 text-xs"></i>
+                        </div>
+                    </a>
+                    <div class="flex gap-2 w-full mt-3">
+                        <button
+                            class="flex-1 bg-primary hover:bg-blue-600 text-white text-xs px-3 py-1.5 rounded-button flex items-center justify-center space-x-1 whitespace-nowrap"
+                            onclick="window.location.href='{{ route('products.show', $product->share_slug ?: $product->slug) }}';">
+                            <i class="ri-shopping-bag-line text-xs"></i>
+                            <span>اشتر</span>
+                        </button>
+                        <button
+                            class="flex-1 bg-green-500 hover:bg-green-600 text-white text-xs px-3 py-1.5 rounded-button flex items-center justify-center space-x-1 whitespace-nowrap"
+                            onclick="event.stopPropagation(); addToCart({{ $product->id }});">
+                            <i class="ri-shopping-cart-2-line text-xs"></i>
+                            <span>سلة</span>
+                        </button>
                     </div>
-                    <span class="text-sm text-center">{{$product->name}}</span>
-                    <div class="rating-stars mt-1">
-                        <i class="ri-star-fill filled text-xs"></i>
-                        <i class="ri-star-fill filled text-xs"></i>
-                        <i class="ri-star-fill filled text-xs"></i>
-                        <i class="ri-star-fill filled text-xs"></i>
-                        <i class="ri-star-half-fill filled text-xs"></i>
-                    </div>
-                    <div class="text-xs font-semibold bg-gray-800 px-2 py-1 rounded-full flex items-center mt-2">
-                        <span class="text-yellow-400 mr-1">{{$product->price}}</span>
-                        <i class="ri-coin-line text-yellow-400 text-xs"></i>
-                    </div>
-</a>
+                </div>
                
                 @endforeach
                 <!-- <div class="bg-[#1e293b] rounded-xl p-3 flex flex-col items-center cursor-pointer hover:bg-gray-700 transition-all">
@@ -562,6 +593,27 @@
         </div>
         @endif
 
+        <!-- Services Section -->
+        @if($homePage->services_enabled)
+        <div class="mb-8">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white">{{$homePage->services_title ?? 'خدماتنا'}}</h3>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                @if($homePage->services_data && is_array($homePage->services_data))
+                    @foreach($homePage->services_data as $service)
+                    <div class="bg-[#1e293b] rounded-xl p-6 text-center hover:bg-[#2d3e57] transition-all cursor-pointer">
+                        <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
+                            <i class="{{ $service['icon'] ?? 'ri-service-line' }} text-primary text-3xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold text-white mb-2">{{ $service['title'] ?? '' }}</h4>
+                        <p class="text-gray-400 text-sm">{{ $service['description'] ?? '' }}</p>
+                    </div>
+                    @endforeach
+                @endif
+            </div>
+        </div>
+        @endif
 
  <!-- Testimonials Section -->
  @if($homePage->reviews_enabled)

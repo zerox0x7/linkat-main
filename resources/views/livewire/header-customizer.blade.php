@@ -751,6 +751,11 @@
                             <input type="checkbox" wire:model="currencySwitcherEnabled" class="ml-2 toggle-switch sr-only">
                             <span class="mr-3 text-sm font-medium text-gray-300">مبدل العملة</span>
                         </label>
+                        
+                        <label class="relative inline-flex items-center cursor-pointer bg-[#0f1623] border border-[#2a3548] rounded-lg p-3">
+                            <input type="checkbox" wire:model="settingsEnabled" class="ml-2 toggle-switch sr-only">
+                            <span class="mr-3 text-sm font-medium text-gray-300">تفعيل الإعدادات</span>
+                        </label>
                     </div>
                 </div>
             </div>
