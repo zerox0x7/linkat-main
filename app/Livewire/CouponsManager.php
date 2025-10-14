@@ -128,8 +128,7 @@ class CouponsManager extends Component
 
     public function render()
     {
-        $coupons = Coupon::with(['categories', 'products'])
-            ->orderBy('created_at', 'desc')
+        $coupons = Coupon::orderBy('created_at', 'desc')
             ->paginate($this->perPage);  // Use the perPage query string this will be send with the request query string
 
         return view('livewire.coupons-manager', compact('coupons'));

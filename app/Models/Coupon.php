@@ -139,12 +139,30 @@ class Coupon extends Model
 
     public function categories()
     {
-        return $this->belongsToMany(Category::class, 'coupon_categories');
+        if (empty($this->category_ids)) {
+            return collect([]);
+        }
+        return Category::whereIn('id', $this->category_ids)->get();
     }
 
     public function products()
     {
-        return $this->belongsToMany(Product::class, 'coupon_products');
+        if (empty($this->product_ids)) {
+            return collect([]);
+        }
+        return Product::whereIn('id', $this->product_ids)->get();
+    }
+
+    // Helper method to check if coupon applies to a specific category
+    public function appliesToCategory($categoryId)
+    {
+        return empty($this->category_ids) || in_array($categoryId, $this->category_ids);
+    }
+
+    // Helper method to check if coupon applies to a specific product
+    public function appliesToProduct($productId)
+    {
+        return empty($this->product_ids) || in_array($productId, $this->product_ids);
     }
 
     // Helper methods for display

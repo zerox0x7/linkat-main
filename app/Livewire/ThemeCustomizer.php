@@ -15,7 +15,7 @@ class ThemeCustomizer extends Component
     public $themeData;
     public $themeName;
     
-    // Hero section - Multiple slides (up to 6)
+    // Hero section - Multiple slides (up to 10)
     public $heroSlides = [];
     public $newHeroSlide = [
         'title' => '',
@@ -120,8 +120,8 @@ class ThemeCustomizer extends Component
     
     public function addHeroSlide()
     {
-        if (count($this->heroSlides) >= 6) {
-            session()->flash('error', 'لا يمكن إضافة أكثر من 6 صور للبطل');
+        if (count($this->heroSlides) >= 10) {
+            session()->flash('error', 'لا يمكن إضافة أكثر من 10 صور للبطل والصفحة الرئيسية');
             return;
         }
         

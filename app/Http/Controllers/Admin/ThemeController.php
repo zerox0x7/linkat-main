@@ -208,11 +208,18 @@ class ThemeController extends Controller
             return redirect()->back()->with('error', 'الثيم المطلوب غير موجود');
         }
 
-        // Update active theme
+        // Update active theme in settings
         Setting::set('active_theme', $themeName);
+        
+        // Update active_theme column in users table for current user
+        $user = auth()->user();
+        if ($user) {
+            $user->active_theme = $themeName;
+            $user->save();
+        }
 
         // Deactivate all themes for this store
-        $storeId = auth()->user()->store_id ?? null;
+        $storeId = $user->store_id ?? null;
         ThemeData::where('store_id', $storeId)->update(['is_active' => false]);
 
         // Activate selected theme (create if not exists)
@@ -309,8 +316,8 @@ class ThemeController extends Controller
             foreach ($directories as $directory) {
                 $name = basename($directory);
                 
-                // Skip admin theme
-                if ($name === 'admin') {
+                // Skip admin and dashboard themes (special use only)
+                if ($name === 'admin' || $name === 'dashboard') {
                     continue;
                 }
 

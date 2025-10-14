@@ -170,7 +170,7 @@ class HomeController extends Controller
         }
         
         $reviewsSection   = ReviewsSection::where('store_id', $store->id)->first();
-        
+        // dd($store);
         // Get homePage and headerSettings for greenGame theme
         $homePage = HomePage::where('store_id', $store->id)->first() ?? HomePage::getDefault($store->id);
         $headerSettings = \App\Models\HeaderSettings::getSettings($store->id);
@@ -180,6 +180,15 @@ class HomeController extends Controller
             ->active()
             ->ordered()
             ->get();
+        
+        // Get active theme data from themes_data table
+        // Use store_id from users table, not the store's id
+        $themeDataRecord = \App\Models\ThemeData::getByStoreAndTheme($store->store_id, $theme);
+        $themeData = null;
+        
+        if ($themeDataRecord) {
+            $themeData = $themeDataRecord->toArray();
+        }
         
         return view("themes.$theme.pages.home", compact(
             'homeSections',
@@ -196,7 +205,8 @@ class HomeController extends Controller
             'services',
             'homePage',
             'headerSettings',
-            'menus'
+            'menus',
+            'themeData'
         ));
     }
 

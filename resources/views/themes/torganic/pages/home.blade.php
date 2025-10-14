@@ -4,23 +4,44 @@
 @section('description', isset($homePage) ? $homePage->description : '')
 
 @section('content')
+@php
+    // Dump theme data passed from controller
+ 
+    // Get hero slide data from themeData
+    $heroSlide = $themeData['hero_data']['slides'][0] ?? null;
+    $heroSlide2 = $themeData['hero_data']['slides'][1] ?? null;
+    $heroSlide3 = $themeData['hero_data']['slides'][2] ?? null;
+@endphp
 <!-- Banner Section -->
-@if(isset($homePage) && $homePage->hero_enabled)
+@if($heroSlide || (isset($homePage) && $homePage->hero_enabled))
 <section class="banner banner--style2">
     <div class="container">
         <div class="banner__inner">
             <div class="row g-4">
                 <div class="col-xl-8">
-                    <div class="banner__wrapper" style="background-image: url({{ $homePage->hero_image ? asset('storage/' . $homePage->hero_image) : ($homePage->hero_background_image ? asset('storage/' . $homePage->hero_background_image) : asset('themes/torganic/assets/images/banner/home2/1.png')) }}); background-size: cover; background-position: center center; background-repeat: no-repeat; min-height: 400px; border-radius: 1.5rem; position: relative;">
+                    @php
+                        // Get background image from themeData or fallback to homePage
+                        $backgroundImage = null;
+                        if ($heroSlide && isset($heroSlide['image'])) {
+                            $backgroundImage = asset('storage/' . $heroSlide['image']);
+                        } elseif (isset($homePage)) {
+                            $backgroundImage = $homePage->hero_image 
+                                ? asset('storage/' . $homePage->hero_image) 
+                                : ($homePage->hero_background_image ? asset('storage/' . $homePage->hero_background_image) : asset('themes/torganic/assets/images/banner/home2/1.png'));
+                        } else {
+                            $backgroundImage = asset('themes/torganic/assets/images/banner/home2/1.png');
+                        }
+                    @endphp
+                    <div class="banner__wrapper" style="background-image: url({{ $backgroundImage }}); background-size: cover; background-position: center center; background-repeat: no-repeat; min-height: 400px; border-radius: 1.5rem; position: relative;">
                         <!-- Overlay for better text readability -->
                         <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.3); border-radius: 1.5rem;"></div>
                         <div class="row align-items-center g-5" style="position: relative; z-index: 2; padding: 2rem;">
                             <div class="col-lg-3 col-md-5">
                                 <div class="banner__thumb" data-aos="fade-up" data-aos-duration="1000" style="width: 100%; height: 100%; min-height: 300px;">
-                                    @if($homePage->hero_image)
-                                        <!-- <img src="{{ asset('storage/' . $homePage->hero_image) }}" alt="banner" class="dark" style="width: 100%; height: 100%; object-fit: cover; border-radius: 1rem;"> -->
-                                    @elseif($homePage->hero_background_image)
-                                        <!-- <img src="{{ asset('storage/' . $homePage->hero_background_image) }}" alt="banner" class="dark" style="width: 100%; height: 100%; object-fit: cover; border-radius: 1rem;"> -->
+                                    @if($heroSlide && isset($heroSlide['main_image']) && $heroSlide['main_image'])
+                                        <img src="{{ asset('storage/' . $heroSlide['main_image']) }}" alt="{{ $heroSlide['title'] ?? 'Hero Image' }}" class="dark" style="width: 100%; height: 100%; object-fit: contain; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 1rem;">
+                                    @elseif(isset($homePage) && $homePage->hero_image)
+                                    @elseif(isset($homePage) && $homePage->hero_background_image)
                                     @elseif(\App\Models\Setting::get('store_logo'))
                                         <img src="{{ asset('storage/' . \App\Models\Setting::get('store_logo')) }}" alt="{{ \App\Models\Setting::get('store_name', 'Store Logo') }}" class="dark" style="width: 100%; height: 100%; object-fit: contain; padding: 20px; background: rgba(255, 255, 255, 0.9); border-radius: 1rem;">
                                     @else
@@ -33,12 +54,16 @@
                             <div class="col-lg-9 col-md-7">
                                 <div class="banner__content" data-aos="fade-right" data-aos-duration="800" style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.7);">
                                     <h1 class="banner__content-heading" style="color: white;">
-                                        {{ $homePage->hero_title ?? 'منتجات طازجة لحياة صحية' }}
+                                        {{ ($heroSlide['title'] ?? null) ?: ($homePage->hero_title ?? 'منتجات طازجة لحياة صحية') }}
                                     </h1>
                                     <p class="banner__content-moto" style="color: rgba(255,255,255,0.9);">
-                                        {{ $homePage->hero_subtitle ?? $homePage->hero_description ?? 'نوفر لك أفضل المنتجات العضوية الطازجة' }}
+                                        {{ ($heroSlide['subtitle'] ?? null) ?: ($homePage->hero_subtitle ?? $homePage->hero_description ?? 'نوفر لك أفضل المنتجات العضوية الطازجة') }}
                                     </p>
-                                    @if($homePage->hero_button1_text && $homePage->hero_button1_link)
+                                    @if($heroSlide && isset($heroSlide['button_text']) && $heroSlide['button_text'])
+                                        <a href="{{ $heroSlide['button_link'] ?? route('products.index') }}" class="trk-btn trk-btn--secondary" style="background: white; color: var(--brand-color); border: 2px solid white;">
+                                            {{ $heroSlide['button_text'] }} <span><i class="fa-solid fa-arrow-right-long"></i></span>
+                                        </a>
+                                    @elseif(isset($homePage) && $homePage->hero_button1_text && $homePage->hero_button1_link)
                                         <a href="{{ $homePage->hero_button1_link }}" class="trk-btn trk-btn--secondary" style="background: white; color: var(--brand-color); border: 2px solid white;">
                                             {{ $homePage->hero_button1_text }} <span><i class="fa-solid fa-arrow-right-long"></i></span>
                                         </a>
@@ -56,22 +81,46 @@
                     <div class="row g-4">
                         <div class="col-md-6 col-xl-12">
                             <div class="sale-banner__item sale-banner__item--home2">
-                                <div class="sale-banner__item-inner" style="background-image: url({{ asset('themes/torganic/assets/images/banner/home2/2.png') }});">
+                                @php
+                                    // Get background image for slide 2
+                                    $slide2Background = $heroSlide2 && isset($heroSlide2['image']) 
+                                        ? asset('storage/' . $heroSlide2['image']) 
+                                        : asset('themes/torganic/assets/images/banner/home2/2.png');
+                                @endphp
+                                <div class="sale-banner__item-inner" style="background-image: url({{ $slide2Background }});">
                                     <div class="sale-banner__item-content">
-                                        <span class="sale-banner__offer">30% خصم</span>
-                                        <h3 class="sale-banner__title">منتجات عضوية صحية ومتميزة</h3>
-                                        <a href="{{ route('products.index') }}" class="trk-btn trk-btn--outline">تسوق الآن</a>
+                                        <span class="sale-banner__offer">
+                                            {{ $heroSlide2['subtitle'] ?? '30% خصم' }}
+                                        </span>
+                                        <h3 class="sale-banner__title">
+                                            {{ $heroSlide2['title'] ?? 'منتجات عضوية صحية ومتميزة' }}
+                                        </h3>
+                                        <a href="{{ $heroSlide2['button_link'] ?? route('products.index') }}" class="trk-btn trk-btn--outline">
+                                            {{ $heroSlide2['button_text'] ?? 'تسوق الآن' }}
+                                        </a>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6 col-xl-12">
                             <div class="sale-banner__item sale-banner__item--home2">
-                                <div class="sale-banner__item-inner" style="background-image: url({{ asset('themes/torganic/assets/images/banner/home2/3.png') }});">
+                                @php
+                                    // Get background image for slide 3
+                                    $slide3Background = $heroSlide3 && isset($heroSlide3['image']) 
+                                        ? asset('storage/' . $heroSlide3['image']) 
+                                        : asset('themes/torganic/assets/images/banner/home2/3.png');
+                                @endphp
+                                <div class="sale-banner__item-inner" style="background-image: url({{ $slide3Background }});">
                                     <div class="sale-banner__item-content">
-                                        <span class="sale-banner__offer">50% خصم</span>
-                                        <h3 class="sale-banner__title">حلويات طبيعية ولذيذة</h3>
-                                        <a href="{{ route('products.index') }}" class="trk-btn trk-btn--outline">تسوق الآن</a>
+                                        <span class="sale-banner__offer">
+                                            {{ $heroSlide3['subtitle'] ?? '50% خصم' }}
+                                        </span>
+                                        <h3 class="sale-banner__title">
+                                            {{ $heroSlide3['title'] ?? 'حلويات طبيعية ولذيذة' }}
+                                        </h3>
+                                        <a href="{{ $heroSlide3['button_link'] ?? route('products.index') }}" class="trk-btn trk-btn--outline">
+                                            {{ $heroSlide3['button_text'] ?? 'تسوق الآن' }}
+                                        </a>
                                     </div>
                                 </div>
                             </div>

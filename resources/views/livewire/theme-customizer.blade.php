@@ -19,14 +19,14 @@
         </div>
     @endif
 
-    <form wire:submit.prevent="save">
+    <form wire:submit.prevent="save" x-data="{ activeTab: 'hero' }">
         <!-- Tabs Navigation -->
-        <div class="flex gap-2 mb-6 border-b border-[#2a3548] overflow-x-auto" x-data="{ activeTab: 'hero' }">
+        <div class="flex gap-2 mb-6 border-b border-[#2a3548] overflow-x-auto">
             <button type="button" @click="activeTab = 'hero'" 
                     class="px-6 py-3 font-medium transition-all duration-300 border-b-2"
                     :class="activeTab === 'hero' ? 'text-primary border-primary' : 'text-gray-400 border-transparent hover:text-white'">
                 <i class="ri-image-line ml-2"></i>
-                قسم البطل (Hero)
+                الصفحة الرئيسية والبطل
             </button>
             <button type="button" @click="activeTab = 'banner'" 
                     class="px-6 py-3 font-medium transition-all duration-300 border-b-2"
@@ -49,19 +49,19 @@
         </div>
 
         <!-- Hero Section Tab -->
-        <div x-data="{ activeTab: 'hero' }" x-show="activeTab === 'hero'" class="space-y-6">
+        <div x-show="activeTab === 'hero'" class="space-y-6">
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h3 class="text-xl font-bold text-white flex items-center gap-3">
                         <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-primary/20 to-secondary/20 flex items-center justify-center">
                             <i class="ri-image-line text-primary"></i>
                         </div>
-                        قسم البطل (Hero Section)
+                        قسم البطل والصفحة الرئيسية (Hero & Home Page)
                     </h3>
-                    <p class="text-gray-400 text-sm mt-1">يمكنك إضافة حتى 6 صور مع عناوينها وأزرارها</p>
+                    <p class="text-gray-400 text-sm mt-1">يمكنك إضافة حتى 10 صور مع عناوينها وأزرارها</p>
                 </div>
                 <div class="text-sm text-gray-400">
-                    <span class="font-bold text-primary">{{ count($heroSlides) }}</span> / 6 صور
+                    <span class="font-bold text-primary">{{ count($heroSlides) }}</span> / 10 صور
                 </div>
             </div>
 
@@ -198,7 +198,7 @@
             @endif
 
             <!-- Add/Edit Slide Form -->
-            @if(count($heroSlides) < 6 || $editingSlideIndex !== null)
+            @if(count($heroSlides) < 10 || $editingSlideIndex !== null)
                 <div class="bg-gradient-to-br from-[#0f1623] to-[#1a2234] rounded-xl border-2 border-primary/30 p-6 shadow-xl">
                     <div class="flex items-center justify-between mb-6">
                         <h4 class="text-lg font-semibold text-white flex items-center gap-2">
@@ -339,16 +339,16 @@
                 </div>
             @endif
 
-            @if(count($heroSlides) >= 6 && $editingSlideIndex === null)
+            @if(count($heroSlides) >= 10 && $editingSlideIndex === null)
                 <div class="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 text-center">
                     <i class="ri-information-line text-orange-400 text-2xl mb-2"></i>
-                    <p class="text-orange-300">لقد وصلت للحد الأقصى (6 صور). احذف صورة أو عدّل موجودة.</p>
+                    <p class="text-orange-300">لقد وصلت للحد الأقصى (10 صور). احذف صورة أو عدّل موجودة.</p>
                 </div>
             @endif
         </div>
 
         <!-- Banner Section Tab -->
-        <div x-data="{ activeTab: 'hero' }" x-show="activeTab === 'banner'" class="space-y-6">
+        <div x-show="activeTab === 'banner'" class="space-y-6">
             <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-orange-500/20 to-red-500/20 flex items-center justify-center">
                     <i class="ri-landscape-line text-orange-400"></i>
@@ -433,7 +433,7 @@
         </div>
 
         <!-- Custom Data Tab -->
-        <div x-data="{ activeTab: 'hero', newKey: '', newValue: '' }" x-show="activeTab === 'custom'" class="space-y-6">
+        <div x-data="{ newKey: '', newValue: '' }" x-show="activeTab === 'custom'" class="space-y-6">
             <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-purple-500/20 to-pink-500/20 flex items-center justify-center">
                     <i class="ri-settings-3-line text-purple-400"></i>
@@ -495,7 +495,7 @@
         </div>
 
         <!-- Custom CSS/JS Tab -->
-        <div x-data="{ activeTab: 'hero' }" x-show="activeTab === 'code'" class="space-y-6">
+        <div x-show="activeTab === 'code'" class="space-y-6">
             <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-lg bg-gradient-to-r from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
                     <i class="ri-code-line text-blue-400"></i>
@@ -521,7 +521,7 @@
         </div>
 
         <!-- Save Button for Banner/Custom/Code tabs -->
-        <div class="mt-8 flex items-center justify-end gap-4 border-t border-[#2a3548] pt-6" x-data="{ activeTab: 'hero' }" x-show="activeTab !== 'hero'">
+        <div class="mt-8 flex items-center justify-end gap-4 border-t border-[#2a3548] pt-6" x-show="activeTab !== 'hero'">
             <button type="submit" 
                     wire:loading.attr="disabled"
                     class="px-8 py-4 bg-gradient-to-r from-primary to-secondary text-white font-semibold rounded-xl hover:opacity-90 transition-all duration-300 shadow-lg hover:shadow-xl flex items-center gap-3">

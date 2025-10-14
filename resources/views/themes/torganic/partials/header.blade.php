@@ -24,6 +24,55 @@
             justify-content: center;
             line-height: 1;
         }
+        
+        /* Dynamic Header Layout Support */
+        .header__wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        
+        /* Logo Positioning */
+        .header__brand--center {
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        /* Navigation Centering */
+        .header__navbar--center {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+        
+        /* Search Container */
+        .header__search {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Logo responsive styles */
+        .header__brand img {
+            object-fit: contain;
+            width: auto;
+            height: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .header__brand img {
+                max-width: min(150px, 80vw) !important;
+                max-height: 40px !important;
+            }
+        }
+        
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .header__brand img {
+                max-width: min(180px, 60vw) !important;
+                max-height: 45px !important;
+            }
+        }
     </style>
     
     @if($headerSettings->header_shadow)
@@ -71,197 +120,326 @@
     
     <div class="container">
         <div class="header__wrapper">
-            <!-- Logo -->
-            @if($headerSettings->logo_enabled)
-            <div class="header__brand">
-                <a href="{{ route('home') }}">
-                    @if($headerSettings->logo_image)
-                        <img src="{{ asset('storage/'.$headerSettings->logo_image) }}" 
-                             alt="{{ config('app.name') }}" 
-                             style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px; object-fit: contain;">
-                    @elseif($headerSettings->logo_svg)
-                        <div style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px;">
-                            {!! $headerSettings->logo_svg !!}
-                        </div>
-                    @elseif(isset($homePage) && $homePage->store_logo)
-                        <img src="{{ asset('storage/'.$homePage->store_logo) }}" 
-                             alt="{{ config('app.name') }}" 
-                             style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px; object-fit: contain;">
-                    @else
-                        <img src="{{ asset('themes/torganic/assets/images/logo/logo-dark.svg') }}" alt="{{ config('app.name') }}">
-                    @endif
-                </a>
-            </div>
-            @endif
+            @php
+                $logoPosition = $headerSettings->logo_position ?? 'left';
+                $showNavInCenter = !$headerSettings->search_bar_enabled && $headerSettings->navigation_enabled;
+            @endphp
+            
+            {{-- Dynamic Arrangement Based on Logo Position --}}
+            @if($logoPosition === 'left')
+                {{-- Layout: Logo | Navigation/Search | Actions --}}
+                
+                <!-- Logo (Left) -->
+                @if($headerSettings->logo_enabled)
+                <div class="header__brand">
+                    <a href="{{ route('home') }}">
+                        @if($headerSettings->logo_image)
+                            <img src="{{ asset('storage/'.$headerSettings->logo_image) }}" 
+                                 alt="{{ config('app.name') }}" 
+                                 style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px; object-fit: contain;">
+                        @elseif($headerSettings->logo_svg)
+                            <div style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px;">
+                                {!! $headerSettings->logo_svg !!}
+                            </div>
+                        @elseif(isset($homePage) && $homePage->store_logo)
+                            <img src="{{ asset('storage/'.$homePage->store_logo) }}" 
+                                 alt="{{ config('app.name') }}" 
+                                 style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px; object-fit: contain;">
+                        @else
+                            <img src="{{ asset('themes/torganic/assets/images/logo/logo-dark.svg') }}" alt="{{ config('app.name') }}">
+                        @endif
+                    </a>
+                </div>
+                @endif
 
-            <!-- Navigation Menu -->
-            @if($headerSettings->navigation_enabled)
-            <div class="header__navbar">
-                <div class="header__overlay"></div>
-                <nav class="menu">
-                    @if($headerSettings->mobile_menu_enabled)
-                    <div class="menu-mobile-header">
-                        <button type="button" class="menu-mobile-arrow"><i class="fa-solid fa-arrow-left"></i></button>
-                        <div class="menu-mobile-title"></div>
-                        <button type="button" class="menu-mobile-close"><i class="fa-solid fa-xmark"></i></button>
-                    </div>
-                    @endif
-                    
-                    <ul class="menu-section menu-section--style-2">
-                        @if($headerSettings->show_home_link)
-                        <li><a href="{{ route('home') }}">الرئيسية</a></li>
+                <!-- Navigation Menu (Center) -->
+                @if($headerSettings->navigation_enabled)
+                <div class="header__navbar">
+                    <div class="header__overlay"></div>
+                    <nav class="menu">
+                        @if($headerSettings->mobile_menu_enabled)
+                        <div class="menu-mobile-header">
+                            <button type="button" class="menu-mobile-arrow"><i class="fa-solid fa-arrow-left"></i></button>
+                            <div class="menu-mobile-title"></div>
+                            <button type="button" class="menu-mobile-close"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
                         @endif
                         
-                        {{-- Dynamic Menu Items from HeaderSettings --}}
-                        @if($headerSettings->main_menus_enabled && $headerSettings->menu_items && is_array($headerSettings->menu_items))
-                            @foreach ($headerSettings->menu_items as $menuItem)
-                            @if(isset($menuItem['is_active']) && $menuItem['is_active'])
-                            <li>
-                                <a href="{{ url($menuItem['url'] ?? '#') }}">
-                                    {{ $menuItem['name'] ?? 'Menu Item' }}
-                                </a>
+                        <ul class="menu-section menu-section--style-2">
+                            @if($headerSettings->show_home_link)
+                            <li><a href="{{ route('home') }}">الرئيسية</a></li>
+                            @endif
+                            
+                            {{-- Dynamic Menu Items from HeaderSettings --}}
+                            @if($headerSettings->main_menus_enabled && $headerSettings->menu_items && is_array($headerSettings->menu_items))
+                                @foreach ($headerSettings->menu_items as $menuItem)
+                                @if(isset($menuItem['is_active']) && $menuItem['is_active'])
+                                <li>
+                                    <a href="{{ url($menuItem['url'] ?? '#') }}">
+                                        {{ $menuItem['name'] ?? 'Menu Item' }}
+                                    </a>
+                                </li>
+                                @endif
+                                @endforeach
+                            @elseif($headerSettings->main_menus_enabled && isset($menus) && $menus->isNotEmpty())
+                                @foreach ($menus->take($headerSettings->main_menus_number ?? 5) as $menu)
+                                <li>
+                                    <a href="{{ url($menu->url) }}">{{ $menu->title }}</a>
+                                </li>
+                                @endforeach
+                            @endif
+                            
+                            {{-- Show Categories if Enabled --}}
+                            @if($headerSettings->show_categories_in_menu && isset($categories) && $categories->isNotEmpty())
+                            <li class="menu-item-has-children">
+                                <a href="{{ route('products.index') }}">الأقسام <i class="fa-solid fa-angle-down"></i></a>
+                                <div class="submenu">
+                                    <ul>
+                                        @foreach($categories->take($headerSettings->categories_count ?? 5) as $category)
+                                        <li><a href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
                             </li>
                             @endif
-                            @endforeach
-                        @elseif($headerSettings->main_menus_enabled && isset($menus) && $menus->isNotEmpty())
-                            @foreach ($menus->take($headerSettings->main_menus_number ?? 5) as $menu)
-                            <li>
-                                <a href="{{ url($menu->url) }}">{{ $menu->title }}</a>
+                            
+                            {{-- Static Pages if Available --}}
+                            @if(isset($pages) && $pages->isNotEmpty())
+                            <li class="menu-item-has-children">
+                                <a href="#">الصفحات <i class="fa-solid fa-angle-down"></i></a>
+                                <div class="submenu">
+                                    <ul>
+                                        @foreach($pages as $page)
+                                        <li><a href="{{ route('page.show', $page->slug) }}">{{ $page->title }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
                             </li>
-                            @endforeach
-                        @endif
-                        
-                        {{-- Show Categories if Enabled --}}
-                        @if($headerSettings->show_categories_in_menu && isset($categories) && $categories->isNotEmpty())
-                        <li class="menu-item-has-children">
-                            <a href="{{ route('products.index') }}">الأقسام <i class="fa-solid fa-angle-down"></i></a>
-                            <div class="submenu">
-                                <ul>
-                                    @foreach($categories->take($headerSettings->categories_count ?? 5) as $category)
-                                    <li><a href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a></li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </li>
-                        @endif
-                        
-                        {{-- Static Pages if Available --}}
-                        @if(isset($pages) && $pages->isNotEmpty())
-                        <li class="menu-item-has-children">
-                            <a href="#">الصفحات <i class="fa-solid fa-angle-down"></i></a>
-                            <div class="submenu">
-                                <ul>
-                                    @foreach($pages as $page)
-                                    <li><a href="{{ route('page.show', $page->slug) }}">{{ $page->title }}</a></li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        </li>
-                        @endif
-                    </ul>
-                </nav>
-            </div>
-            @endif
-
-            <!-- Header Actions -->
-            <div class="header__action">
-                <!-- User Account -->
-                @if($headerSettings->user_menu_enabled)
-                    @auth
-                    <a class="header__action-btn d-none d-xl-grid" href="{{ route('profile.show') }}" title="حسابي">
-                        <i class="fa-regular fa-user"></i>
-                    </a>
-                    @else
-                    <a class="header__action-btn d-none d-xl-grid" href="{{ route('login') }}" title="تسجيل الدخول">
-                        <i class="fa-regular fa-user"></i>
-                    </a>
-                    @endauth
-                @endif
-
-                <!-- Wishlist -->
-                @if($headerSettings->wishlist_enabled)
-                <a class="header__action-btn d-none d-xl-grid" href="#" title="المفضلة">
-                    <i class="fa-regular fa-heart"></i>
-                </a>
-                @endif
-
-                <!-- Cart -->
-                @if($headerSettings->shopping_cart_enabled)
-                <a class="header__action-btn d-none d-xl-grid position-relative" href="{{ route('cart.index') }}" title="سلة التسوق">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="cart-icon">
-                        <path d="M4.92383 18.2228C4.92383 18.6943 5.11832 19.1464 5.46451 19.4798C5.81071 19.8132 6.28025 20.0005 6.76985 20.0005C7.25944 20.0005 7.72899 19.8132 8.07518 19.4798C8.42138 19.1464 8.61587 18.6943 8.61587 18.2228C8.61587 17.7513 8.42138 17.2991 8.07518 16.9658C7.72899 16.6324 7.25944 16.4451 6.76985 16.4451C6.28025 16.4451 5.81071 16.6324 5.46451 16.9658C5.11832 17.2991 4.92383 17.7513 4.92383 18.2228Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M15.0762 18.2228C15.0762 18.6943 15.2707 19.1464 15.6169 19.4798C15.9631 19.8132 16.4326 20.0005 16.9222 20.0005C17.4118 20.0005 17.8813 19.8132 18.2275 19.4798C18.5737 19.1464 18.7682 18.6943 18.7682 18.2228C18.7682 17.7513 18.5737 17.2991 18.2275 16.9658C17.8813 16.6324 17.4118 16.4451 16.9222 16.4451C16.4326 16.4451 15.9631 16.6324 15.6169 16.9658C15.2707 17.2991 15.0762 17.7513 15.0762 18.2228Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M16.923 16.4446H6.76985V4.00049H4.92383" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M6.76953 5.77881L19.6917 6.66767L18.7687 12.8897H6.76953" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    @php
-                        $cartCount = 0;
-                        $sessionCartCount = session()->get('cart_count');
-                        
-                        if ($sessionCartCount !== null) {
-                            $cartCount = $sessionCartCount;
-                        } else {
-                            if (auth()->check()) {
-                                $userCart = \App\Models\Cart::with('items')->where('user_id', auth()->id())->first();
-                                $cartCount = $userCart ? $userCart->getItemsCount() : 0;
-                            } else {
-                                $sessionId = session()->get('cart_session_id');
-                                if ($sessionId) {
-                                    $sessionCart = \App\Models\Cart::with('items')->where('session_id', $sessionId)->first();
-                                    $cartCount = $sessionCart ? $sessionCart->getItemsCount() : 0;
-                                }
-                            }
-                            session()->put('cart_count', $cartCount);
-                        }
-                    @endphp
-                    @if($cartCount > 0)
-                    <span class="badge bg-primary cart-count position-absolute top-0 start-100 translate-middle rounded-circle">{{ $cartCount }}</span>
-                    @endif
-                </a>
-
-                <!-- Mobile Cart -->
-                @if($headerSettings->mobile_cart_enabled)
-                <a href="{{ route('cart.index') }}" class="header__action-btn menu-icon d-xl-none position-relative">
-                    <i class="fa-solid fa-cart-shopping"></i>
-                    @if($cartCount > 0)
-                    <span class="badge bg-primary cart-count position-absolute top-0 start-100 translate-middle rounded-circle">{{ $cartCount }}</span>
-                    @endif
-                </a>
-                @endif
-                @endif
-
-                <!-- Search -->
-                @if($headerSettings->search_bar_enabled)
-                <button id="trk-search-icon" class="menu-icon search-icon header__action-btn">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                </button>
-
-                <!-- Search Box -->
-                <div class="trk-search">
-                    <div class="trk-search__inner">
-                        <form action="{{ route('products.search') }}" method="GET">
-                            <div class="input-group">
-                                <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="ابحث عن منتج..." aria-label="البحث">
-                                <button type="submit" class="trk-search__btn" id="trk-search">
-                                    <i class="fa-solid fa-magnifying-glass"></i>
-                                </button>
-                            </div>
-                        </form>
-                    </div>
+                            @endif
+                        </ul>
+                    </nav>
                 </div>
-                <div class="trk-search__overlay"></div>
                 @endif
 
-                <!-- Mobile Menu Toggle -->
-                @if($headerSettings->mobile_menu_enabled)
-                <button type="button" class="menu-mobile-trigger menu-mobile-trigger--style-2">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
+                <!-- Header Actions (Right) -->
+                @include('themes.torganic.partials.header-actions')
+                
+            @elseif($logoPosition === 'center')
+                {{-- Layout: Actions | Logo/Navigation | Search --}}
+                
+                <!-- Header Actions (Left) -->
+                @include('themes.torganic.partials.header-actions')
+
+                <!-- Logo or Navigation (Center) -->
+                @if($showNavInCenter && $headerSettings->navigation_enabled)
+                <div class="header__navbar header__navbar--center">
+                    <div class="header__overlay"></div>
+                    <nav class="menu">
+                        @if($headerSettings->mobile_menu_enabled)
+                        <div class="menu-mobile-header">
+                            <button type="button" class="menu-mobile-arrow"><i class="fa-solid fa-arrow-left"></i></button>
+                            <div class="menu-mobile-title"></div>
+                            <button type="button" class="menu-mobile-close"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        @endif
+                        
+                        <ul class="menu-section menu-section--style-2">
+                            @if($headerSettings->show_home_link)
+                            <li><a href="{{ route('home') }}">الرئيسية</a></li>
+                            @endif
+                            
+                            {{-- Dynamic Menu Items from HeaderSettings --}}
+                            @if($headerSettings->main_menus_enabled && $headerSettings->menu_items && is_array($headerSettings->menu_items))
+                                @foreach ($headerSettings->menu_items as $menuItem)
+                                @if(isset($menuItem['is_active']) && $menuItem['is_active'])
+                                <li>
+                                    <a href="{{ url($menuItem['url'] ?? '#') }}">
+                                        {{ $menuItem['name'] ?? 'Menu Item' }}
+                                    </a>
+                                </li>
+                                @endif
+                                @endforeach
+                            @elseif($headerSettings->main_menus_enabled && isset($menus) && $menus->isNotEmpty())
+                                @foreach ($menus->take($headerSettings->main_menus_number ?? 5) as $menu)
+                                <li>
+                                    <a href="{{ url($menu->url) }}">{{ $menu->title }}</a>
+                                </li>
+                                @endforeach
+                            @endif
+                            
+                            {{-- Show Categories if Enabled --}}
+                            @if($headerSettings->show_categories_in_menu && isset($categories) && $categories->isNotEmpty())
+                            <li class="menu-item-has-children">
+                                <a href="{{ route('products.index') }}">الأقسام <i class="fa-solid fa-angle-down"></i></a>
+                                <div class="submenu">
+                                    <ul>
+                                        @foreach($categories->take($headerSettings->categories_count ?? 5) as $category)
+                                        <li><a href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </li>
+                            @endif
+                            
+                            {{-- Static Pages if Available --}}
+                            @if(isset($pages) && $pages->isNotEmpty())
+                            <li class="menu-item-has-children">
+                                <a href="#">الصفحات <i class="fa-solid fa-angle-down"></i></a>
+                                <div class="submenu">
+                                    <ul>
+                                        @foreach($pages as $page)
+                                        <li><a href="{{ route('page.show', $page->slug) }}">{{ $page->title }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
+                @elseif($headerSettings->logo_enabled)
+                <div class="header__brand header__brand--center">
+                    <a href="{{ route('home') }}">
+                        @if($headerSettings->logo_image)
+                            <img src="{{ asset('storage/'.$headerSettings->logo_image) }}" 
+                                 alt="{{ config('app.name') }}" 
+                                 style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px; object-fit: contain;">
+                        @elseif($headerSettings->logo_svg)
+                            <div style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px;">
+                                {!! $headerSettings->logo_svg !!}
+                            </div>
+                        @elseif(isset($homePage) && $homePage->store_logo)
+                            <img src="{{ asset('storage/'.$homePage->store_logo) }}" 
+                                 alt="{{ config('app.name') }}" 
+                                 style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px; object-fit: contain;">
+                        @else
+                            <img src="{{ asset('themes/torganic/assets/images/logo/logo-dark.svg') }}" alt="{{ config('app.name') }}">
+                        @endif
+                    </a>
+                </div>
                 @endif
-            </div>
+
+                <!-- Search or Empty Space (Right) -->
+                @if($headerSettings->search_bar_enabled)
+                <div class="header__search">
+                    <button id="trk-search-icon" class="menu-icon search-icon header__action-btn">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+
+                    <div class="trk-search">
+                        <div class="trk-search__inner">
+                            <form action="{{ route('products.search') }}" method="GET">
+                                <div class="input-group">
+                                    <input type="text" name="q" value="{{ request('q') }}" class="form-control" placeholder="ابحث عن منتج..." aria-label="البحث">
+                                    <button type="submit" class="trk-search__btn" id="trk-search">
+                                        <i class="fa-solid fa-magnifying-glass"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="trk-search__overlay"></div>
+                </div>
+                @endif
+                
+            @else
+                {{-- Layout: Actions | Navigation/Search | Logo (Right Position - Default) --}}
+                
+                <!-- Header Actions (Left) -->
+                @include('themes.torganic.partials.header-actions')
+
+                <!-- Navigation Menu (Center) -->
+                @if($headerSettings->navigation_enabled)
+                <div class="header__navbar">
+                    <div class="header__overlay"></div>
+                    <nav class="menu">
+                        @if($headerSettings->mobile_menu_enabled)
+                        <div class="menu-mobile-header">
+                            <button type="button" class="menu-mobile-arrow"><i class="fa-solid fa-arrow-left"></i></button>
+                            <div class="menu-mobile-title"></div>
+                            <button type="button" class="menu-mobile-close"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        @endif
+                        
+                        <ul class="menu-section menu-section--style-2">
+                            @if($headerSettings->show_home_link)
+                            <li><a href="{{ route('home') }}">الرئيسية</a></li>
+                            @endif
+                            
+                            {{-- Dynamic Menu Items from HeaderSettings --}}
+                            @if($headerSettings->main_menus_enabled && $headerSettings->menu_items && is_array($headerSettings->menu_items))
+                                @foreach ($headerSettings->menu_items as $menuItem)
+                                @if(isset($menuItem['is_active']) && $menuItem['is_active'])
+                                <li>
+                                    <a href="{{ url($menuItem['url'] ?? '#') }}">
+                                        {{ $menuItem['name'] ?? 'Menu Item' }}
+                                    </a>
+                                </li>
+                                @endif
+                                @endforeach
+                            @elseif($headerSettings->main_menus_enabled && isset($menus) && $menus->isNotEmpty())
+                                @foreach ($menus->take($headerSettings->main_menus_number ?? 5) as $menu)
+                                <li>
+                                    <a href="{{ url($menu->url) }}">{{ $menu->title }}</a>
+                                </li>
+                                @endforeach
+                            @endif
+                            
+                            {{-- Show Categories if Enabled --}}
+                            @if($headerSettings->show_categories_in_menu && isset($categories) && $categories->isNotEmpty())
+                            <li class="menu-item-has-children">
+                                <a href="{{ route('products.index') }}">الأقسام <i class="fa-solid fa-angle-down"></i></a>
+                                <div class="submenu">
+                                    <ul>
+                                        @foreach($categories->take($headerSettings->categories_count ?? 5) as $category)
+                                        <li><a href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </li>
+                            @endif
+                            
+                            {{-- Static Pages if Available --}}
+                            @if(isset($pages) && $pages->isNotEmpty())
+                            <li class="menu-item-has-children">
+                                <a href="#">الصفحات <i class="fa-solid fa-angle-down"></i></a>
+                                <div class="submenu">
+                                    <ul>
+                                        @foreach($pages as $page)
+                                        <li><a href="{{ route('page.show', $page->slug) }}">{{ $page->title }}</a></li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            </li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
+                @endif
+
+                <!-- Logo (Right) -->
+                @if($headerSettings->logo_enabled)
+                <div class="header__brand">
+                    <a href="{{ route('home') }}">
+                        @if($headerSettings->logo_image)
+                            <img src="{{ asset('storage/'.$headerSettings->logo_image) }}" 
+                                 alt="{{ config('app.name') }}" 
+                                 style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px; object-fit: contain;">
+                        @elseif($headerSettings->logo_svg)
+                            <div style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px;">
+                                {!! $headerSettings->logo_svg !!}
+                            </div>
+                        @elseif(isset($homePage) && $homePage->store_logo)
+                            <img src="{{ asset('storage/'.$homePage->store_logo) }}" 
+                                 alt="{{ config('app.name') }}" 
+                                 style="max-width: {{ $headerSettings->logo_width ?? 150 }}px; max-height: {{ $headerSettings->logo_height ?? 50 }}px; object-fit: contain;">
+                        @else
+                            <img src="{{ asset('themes/torganic/assets/images/logo/logo-dark.svg') }}" alt="{{ config('app.name') }}">
+                        @endif
+                    </a>
+                </div>
+                @endif
+            @endif
         </div>
     </div>
 </header>
