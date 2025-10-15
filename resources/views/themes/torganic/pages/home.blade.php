@@ -11,6 +11,15 @@
     $heroSlide = $themeData['hero_data']['slides'][0] ?? null;
     $heroSlide2 = $themeData['hero_data']['slides'][1] ?? null;
     $heroSlide3 = $themeData['hero_data']['slides'][2] ?? null;
+    $heroSlide4 = $themeData['hero_data']['slides'][3] ?? null;
+    $heroSlide5 = $themeData['hero_data']['slides'][4] ?? null;
+    $heroSlide6 = $themeData['hero_data']['slides'][5] ?? null;
+    $heroSlide7 = $themeData['hero_data']['slides'][6] ?? null;
+    $heroSlide8 = $themeData['hero_data']['slides'][7] ?? null;
+    $heroSlide9 = $themeData['hero_data']['slides'][8] ?? null;
+    
+    // Dump slide 4 data to see what we have
+    // @dump($heroSlide4)
 @endphp
 <!-- Banner Section -->
 @if($heroSlide || (isset($homePage) && $homePage->hero_enabled))
@@ -253,44 +262,68 @@
             <div class="row g-3">
                 <div class="col-xl-3 col-md-6 order-1">
                     <div class="sale-banner__item sale-banner__item--style5">
+                        @php
+                            // Get image for slide 4
+                            $slide4Image = $heroSlide4 && isset($heroSlide4['image']) 
+                                ? asset('storage/' . $heroSlide4['image']) 
+                                : asset('themes/torganic/assets/images/product/sale-banner/5.png');
+                        @endphp
                         <div class="sale-banner__item-inner">
                             <div class="sale-banner__item-content">
-                                <h4 class="sale-banner__title">عسل نقي طبيعي</h4>
-                                <a href="{{ route('products.index') }}" class="text-btn">تسوق الآن</a>
+                                <h4 class="sale-banner__title">
+                                    {{ $heroSlide4['title'] ?? 'عسل نقي طبيعي' }}
+                                </h4>
+                                <a href="{{ $heroSlide4['button_link'] ?? route('products.index') }}" class="text-btn">
+                                    {{ $heroSlide4['button_text'] ?? 'تسوق الآن' }}
+                                </a>
                             </div>
                             <div class="sale-banner__item-thumb">
-                                <img src="{{ asset('themes/torganic/assets/images/product/sale-banner/5.png') }}" alt="عسل طبيعي">
+                                <img src="{{ $slide4Image }}" alt="{{ $heroSlide4['title'] ?? 'عسل طبيعي' }}" style="width: 220px; height: 167px; object-fit: contain; object-position: center;">
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-xl-6 col-lg-12 order-sm-3 order-xl-2">
                     <div class="sale-banner__item sale-banner__item--style4">
+                        @php
+                            // Get image for slide 5
+                            $slide5Image = $heroSlide5 && isset($heroSlide5['image']) 
+                                ? asset('storage/' . $heroSlide5['image']) 
+                                : asset('themes/torganic/assets/images/product/sale-banner/4.png');
+                        @endphp
                         <div class="sale-banner__item-inner">
                             <div class="sale-banner__item-thumb">
-                                <img src="{{ asset('themes/torganic/assets/images/product/sale-banner/4.png') }}" alt="banner">
+                                <img src="{{ $slide5Image }}" alt="{{ $heroSlide5['title'] ?? 'banner' }}">
                                 <div class="sale-banner__item-discount-badge sale-banner__item-discount-badge--style3">
-                                    <span class="sale-banner__discount-text">خصم يصل إلى</span>
-                                    <h4 class="sale-banner__discount-amount">20%</h4>
+                                    <span class="sale-banner__discount-text">{{ $heroSlide5['discount_text'] ?? 'خصم يصل إلى' }}</span>
+                                    <h4 class="sale-banner__discount-amount">{{ $heroSlide5['discount_amount'] ?? '20%' }}</h4>
                                 </div>
                             </div>
                             <div class="sale-banner__item-content">
-                                <h6>عرض لفترة محدودة</h6>
-                                <h3>مجموعة البقالة الفاخرة</h3>
-                                <a href="{{ route('products.index') }}" class="trk-btn trk-btn--sm mt-3">تسوق الآن <span><i class="fa-solid fa-arrow-right-long"></i></span></a>
+                                <h6>{{ $heroSlide5['subtitle'] ?? 'عرض لفترة محدودة' }}</h6>
+                                <h3>{{ $heroSlide5['title'] ?? 'مجموعة البقالة الفاخرة' }}</h3>
+                                <a href="{{ $heroSlide5['button_link'] ?? route('products.index') }}" class="trk-btn trk-btn--sm mt-3">
+                                    {{ $heroSlide5['button_text'] ?? 'تسوق الآن' }} <span><i class="fa-solid fa-arrow-right-long"></i></span>
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-xl-3 col-md-6 order-sm-2 order-xl-3">
                     <div class="sale-banner__item sale-banner__item--style52">
+                        @php
+                            // Get image for slide 6
+                            $slide6Image = $heroSlide6 && isset($heroSlide6['image']) 
+                                ? asset('storage/' . $heroSlide6['image']) 
+                                : asset('themes/torganic/assets/images/product/sale-banner/6.png');
+                        @endphp
                         <div class="sale-banner__item-inner">
                             <div class="sale-banner__item-content">
-                                <h4 class="sale-banner__title">زبدة لوز عضوية</h4>
-                                <a href="{{ route('products.index') }}" class="text-btn text-btn--sm">تسوق الآن</a>
+                                <h4 class="sale-banner__title">{{ $heroSlide6['title'] ?? 'زبدة لوز عضوية' }}</h4>
+                                <a href="{{ $heroSlide6['button_link'] ?? route('products.index') }}" class="text-btn text-btn--sm">{{ $heroSlide6['button_text'] ?? 'تسوق الآن' }}</a>
                             </div>
                             <div class="sale-banner__item-thumb">
-                                <img src="{{ asset('themes/torganic/assets/images/product/sale-banner/6.png') }}" alt="زبدة لوز">
+                                <img src="{{ $slide6Image }}" alt="{{ $heroSlide6['title'] ?? 'زبدة لوز' }}">
                             </div>
                         </div>
                     </div>
@@ -603,13 +636,20 @@
                     <div class="sale-banner__item sale-banner__item--style2">
                         <div class="sale-banner__item-inner">
                             <div class="sale-banner__item-thumb">
-                                <img src="{{ asset('themes/torganic/assets/images/product/sale-banner/2.png') }}" alt="منتجات بحرية">
+                                @php
+                                    $slide7Image = $heroSlide7 && isset($heroSlide7['image']) 
+                                        ? asset('storage/' . $heroSlide7['image']) 
+                                        : asset('themes/torganic/assets/images/product/sale-banner/2.png');
+                                @endphp
+                                <img src="{{ $slide7Image }}" alt="{{ $heroSlide7['title'] ?? 'منتجات بحرية' }}">
                             </div>
                             <div class="sale-banner__item-content">
-                                <span class="sale-banner__offer">خصم 10%</span>
-                                <h3 class="sale-banner__title">منتجات بحرية مميزة</h3>
-                                <p class="sale-banner__description">اكتشف عالماً من النكهات الرائعة مع منتجاتنا البحرية</p>
-                                <a href="{{ route('products.index') }}" class="trk-btn trk-btn--md">تسوق الآن <span><i class="fa-solid fa-arrow-right-long"></i></span></a>
+                                <span class="sale-banner__offer">{{ $heroSlide7['subtitle'] ?? 'خصم 10%' }}</span>
+                                <h3 class="sale-banner__title">{{ $heroSlide7['title'] ?? 'منتجات بحرية مميزة' }}</h3>
+                                <p class="sale-banner__description">{{ $heroSlide7['description'] ?? 'اكتشف عالماً من النكهات الرائعة مع منتجاتنا البحرية' }}</p>
+                                <a href="{{ $heroSlide7['button_link'] ?? route('products.index') }}" class="trk-btn trk-btn--md">
+                                    {{ $heroSlide7['button_text'] ?? 'تسوق الآن' }} <span><i class="fa-solid fa-arrow-right-long"></i></span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -618,18 +658,25 @@
                     <div class="sale-banner__item sale-banner__item--style22">
                         <div class="sale-banner__item-inner">
                             <div class="sale-banner__item-thumb">
-                                <img src="{{ asset('themes/torganic/assets/images/product/sale-banner/3.png') }}" alt="فواكه طازجة">
+                                @php
+                                    $slide8Image = $heroSlide8 && isset($heroSlide8['image']) 
+                                        ? asset('storage/' . $heroSlide8['image']) 
+                                        : asset('themes/torganic/assets/images/product/sale-banner/3.png');
+                                @endphp
+                                <img src="{{ $slide8Image }}" alt="{{ $heroSlide8['title'] ?? 'فواكه طازجة' }}">
                                 <div class="sale-banner__item-discount-badge sale-banner__item-discount-badge--style2">
-                                    <span class="sale-banner__discount-text">خصم حتى</span>
-                                    <h4 class="sale-banner__discount-amount">20%</h4>
-                                    <span class="sale-banner__discount-text">خصم</span>
+                                    <span class="sale-banner__discount-text">{{ $heroSlide8['badge_text'] ?? 'خصم حتى' }}</span>
+                                    <h4 class="sale-banner__discount-amount">{{ $heroSlide8['badge_amount'] ?? '20%' }}</h4>
+                                    <span class="sale-banner__discount-text">{{ $heroSlide8['badge_label'] ?? 'خصم' }}</span>
                                 </div>
                             </div>
                             <div class="sale-banner__item-content">
-                                <span class="sale-banner__offer">أفضل عرض اليوم</span>
-                                <h3 class="sale-banner__title">فواكه صحية</h3>
-                                <p class="sale-banner__description">استمتع بخيرات الطبيعة مع فواكهنا الطازجة</p>
-                                <a href="{{ route('products.index') }}" class="trk-btn trk-btn--md">تسوق الآن <span><i class="fa-solid fa-arrow-right-long"></i></span></a>
+                                <span class="sale-banner__offer">{{ $heroSlide8['subtitle'] ?? 'أفضل عرض اليوم' }}</span>
+                                <h3 class="sale-banner__title">{{ $heroSlide8['title'] ?? 'فواكه صحية' }}</h3>
+                                <p class="sale-banner__description">{{ $heroSlide8['description'] ?? 'استمتع بخيرات الطبيعة مع فواكهنا الطازجة' }}</p>
+                                <a href="{{ $heroSlide8['button_link'] ?? route('products.index') }}" class="trk-btn trk-btn--md">
+                                    {{ $heroSlide8['button_text'] ?? 'تسوق الآن' }} <span><i class="fa-solid fa-arrow-right-long"></i></span>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -814,17 +861,24 @@
             <div class="sale-banner__item sale-banner__item--style1">
                 <div class="sale-banner__item-inner">
                     <div class="sale-banner__item-thumb">
-                        <img class="sale-banner__image" src="{{ asset('themes/torganic/assets/images/product/sale-banner/1.png') }}" alt="خضروات طازجة">
+                        @php
+                            $slide9Image = $heroSlide9 && isset($heroSlide9['image']) 
+                                ? asset('storage/' . $heroSlide9['image']) 
+                                : asset('themes/torganic/assets/images/product/sale-banner/1.png');
+                        @endphp
+                        <img class="sale-banner__image" src="{{ $slide9Image }}" alt="{{ $heroSlide9['title'] ?? 'خضروات طازجة' }}">
                         <div class="sale-banner__item-discount-badge">
-                            <span>خصم حتى</span>
-                            <h3 class="sale-banner__discount-amount">20%</h3>
-                            <span>خصم</span>
+                            <span>{{ $heroSlide9['badge_text'] ?? 'خصم حتى' }}</span>
+                            <h3 class="sale-banner__discount-amount">{{ $heroSlide9['badge_amount'] ?? '20%' }}</h3>
+                            <span>{{ $heroSlide9['badge_label'] ?? 'خصم' }}</span>
                         </div>
                     </div>
                     <div class="sale-banner__item-content">
-                        <h2>تخفيضات كبرى على الخضروات</h2>
-                        <p>اكتشف عالماً من المنتجات الطازجة، والأساسيات، والمزيد في متناول يدك.</p>
-                        <a href="{{ route('products.index') }}" class="trk-btn trk-btn--md mt-3">تسوق الآن <span><i class="fa-solid fa-arrow-right"></i></span></a>
+                        <h2>{{ $heroSlide9['title'] ?? 'تخفيضات كبرى على الخضروات' }}</h2>
+                        <p>{{ $heroSlide9['description'] ?? 'اكتشف عالماً من المنتجات الطازجة، والأساسيات، والمزيد في متناول يدك.' }}</p>
+                        <a href="{{ $heroSlide9['button_link'] ?? route('products.index') }}" class="trk-btn trk-btn--md mt-3">
+                            {{ $heroSlide9['button_text'] ?? 'تسوق الآن' }} <span><i class="fa-solid fa-arrow-right"></i></span>
+                        </a>
                     </div>
                 </div>
             </div>
