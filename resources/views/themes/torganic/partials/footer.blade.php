@@ -28,7 +28,7 @@
 @endphp
 
 @if($footerEnabled)
-<footer class="footer" style="{{ $footerBgColor ? 'background-color: ' . $footerBgColor . ';' : '' }} {{ $footerTextColor ? 'color: ' . $footerTextColor . ';' : '' }}">
+<footer class="footer" style="background-color:rgb(18, 80, 87); {{ $footerTextColor ? 'color: ' . $footerTextColor . ';' : '' }}">
     <div class="footer__top">
         <div class="container">
             <div class="footer__top-wrapper">
@@ -75,39 +75,34 @@
                         </div>
                     </div>
 
-                    <!-- Support/Contact Links -->
-                    @if($footerPhone || $footerEmail)
+                    <!-- Support Links -->
                     <div class="col-xl-2 col-md-3 col-sm-6 col-6">
                         <div class="footer__links">
                             <div class="footer__links-tittle">
-                                <h4>تواصل معنا</h4>
+                                <h4>الدعم</h4>
                             </div>
                             <div class="footer__links-content">
                                 <ul class="footer__linklist">
                                     @if($footerPhone)
                                     <li class="footer__linklist-item">
-                                        <a href="tel:{{ $footerPhone }}">
-                                            <i class="fa-solid fa-phone me-2"></i>{{ $footerPhone }}
-                                        </a>
+                                        <a href="tel:{{ $footerPhone }}">المساعدة</a>
                                     </li>
                                     @endif
-                                    @if($footerEmail)
+                                    @if($footerPhone)
                                     <li class="footer__linklist-item">
-                                        <a href="mailto:{{ $footerEmail }}">
-                                            <i class="fa-solid fa-envelope me-2"></i>{{ $footerEmail }}
-                                        </a>
+                                        <a href="tel:{{ $footerPhone }}">الخط الساخن</a>
                                     </li>
                                     @endif
-                                    @if($footerAddress)
                                     <li class="footer__linklist-item">
-                                        <i class="fa-solid fa-location-dot me-2"></i>{{ $footerAddress }}
+                                        <a href="{{ route('page.show', 'contact') ?? '#' }}">اتصل بنا</a>
                                     </li>
-                                    @endif
+                                    <li class="footer__linklist-item">
+                                        <a href="{{ route('page.show', 'contact') ?? '#' }}">دردش الآن</a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
-                    @endif
 
                     <!-- Account Links -->
                     <div class="col-xl-2 col-md-3 col-sm-6 col-6">
@@ -121,43 +116,34 @@
                                     <li class="footer__linklist-item">
                                         <a href="{{ route('profile.show') }}">حسابي</a>
                                     </li>
-                                    <li class="footer__linklist-item">
-                                        <a href="{{ route('cart.index') }}">عرض السلة</a>
-                                    </li>
-                                    <li class="footer__linklist-item">
-                                        <a href="{{ route('orders.index') ?? '#' }}">طلباتي</a>
-                                    </li>
                                     @else
                                     <li class="footer__linklist-item">
                                         <a href="{{ route('login') }}">تسجيل الدخول</a>
                                     </li>
-                                    <li class="footer__linklist-item">
-                                        <a href="{{ route('register') }}">إنشاء حساب</a>
-                                    </li>
+                                    @endauth
                                     <li class="footer__linklist-item">
                                         <a href="{{ route('cart.index') }}">عرض السلة</a>
                                     </li>
-                                    @endauth
+                                    <li class="footer__linklist-item">
+                                        <a href="{{ route('cart.index') }}">قائمة المفضلة</a>
+                                    </li>
+                                    <li class="footer__linklist-item">
+                                        <a href="{{ route('orders.index') ?? '#' }}">تفاصيل الشحن</a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Quick Links or Categories -->
+                    <!-- Quick Links -->
                     <div class="col-xl-2 col-md-6 col-sm-6">
                         <div class="footer__links">
                             <div class="footer__links-tittle">
-                                <h4>{{ $footerCategoriesEnabled ? 'الأقسام' : 'روابط سريعة' }}</h4>
+                                <h4>روابط سريعة</h4>
                             </div>
                             <div class="footer__links-content">
                                 <ul class="footer__linklist">
-                                    @if($footerCategoriesEnabled && isset($categories) && $categories->isNotEmpty())
-                                        @foreach($categories->take(5) as $category)
-                                        <li class="footer__linklist-item">
-                                            <a href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a>
-                                        </li>
-                                        @endforeach
-                                    @elseif(!empty($footerQuickLinks))
+                                    @if(!empty($footerQuickLinks))
                                         @foreach($footerQuickLinks as $link)
                                         <li class="footer__linklist-item">
                                             <a href="{{ $link['url'] ?? '#' }}">{{ $link['name'] ?? $link['title'] ?? 'رابط' }}</a>
@@ -165,7 +151,10 @@
                                         @endforeach
                                     @else
                                         <li class="footer__linklist-item">
-                                            <a href="{{ route('page.show', 'about') ?? '#' }}">من نحن</a>
+                                            <a href="{{ route('page.show', 'contact') ?? '#' }}">دعم العملاء</a>
+                                        </li>
+                                        <li class="footer__linklist-item">
+                                            <a href="{{ route('page.show', 'shipping') ?? '#' }}">تفاصيل التوصيل</a>
                                         </li>
                                         <li class="footer__linklist-item">
                                             <a href="{{ route('page.show', 'terms') ?? '#' }}">الشروط والأحكام</a>
@@ -190,7 +179,7 @@
                                 <p class="footer__about-moto">{{ $newsletterDescription }}</p>
                                 <form action="#" method="POST" class="newsletter__form">
                                     @csrf
-                                    <input type="email" name="email" class="newsletter__input" placeholder="البريد الإلكتروني" required>
+                                    <input type="email" name="email" class="newsletter__input" placeholder="عنوان البريد الإلكتروني" required>
                                     <button type="submit" class="trk-btn trk-btn--yellow">اشترك</button>
                                 </form>
                             </div>

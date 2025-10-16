@@ -22,6 +22,9 @@
     <link rel="stylesheet" href="{{ asset('themes/torganic/assets/css/swiper-bundle.min.css') }}">
     <link rel="stylesheet" href="{{ asset('themes/torganic/assets/css/style.css') }}">
     
+    <!-- Remix Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.0.0/fonts/remixicon.css" rel="stylesheet">
+    
     <!-- Custom Styles for RTL -->
     <style>
         body {

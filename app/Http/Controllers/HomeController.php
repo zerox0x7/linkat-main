@@ -67,22 +67,18 @@ class HomeController extends Controller
                 $categories = collect(); // Empty collection
             }
             
-            // Get featured products from home_page configuration
-            $featuredProductIds = [];
-            if ($homePageConfig->featured_products && is_array($homePageConfig->featured_products)) {
-                $featuredProductIds = array_column($homePageConfig->featured_products, 'id');
-                $featuredProductIds = array_filter($featuredProductIds); // Remove null values
-            }
-            
-            if (!empty($featuredProductIds)) {
-                $featuredProducts = Product::where('store_id', $store->id)
-                    ->where('status', 'active')
-                    ->whereIn('id', $featuredProductIds)
-                    ->orderByRaw('FIELD(id, ' . implode(',', $featuredProductIds) . ')')
-                    ->get();
-            } else {
-                $featuredProducts = collect(); // Empty collection
-            }
+            // Get featured products based on is_featured column
+            $featuredProducts = Product::where('store_id', $store->id)
+                ->available()
+                ->where('is_featured', true)
+                ->withAvg(['reviews' => function($query) {
+                    $query->where('is_approved', true);
+                }], 'rating')
+                ->withCount(['reviews' => function($query) {
+                    $query->where('is_approved', true);
+                }])
+                ->latest()
+                ->get();
             
             // Get brand products from home_page configuration
             $brandProductIds = [];
@@ -122,7 +118,7 @@ class HomeController extends Controller
         // dd($featuredProducts);
         
         // أحدث المنتجات للقسم الافتراضي
-        $latestProducts = Product::where('store_id', $store->id )->where('status','active')->available()
+        $latestProducts = Product::where('store_id', $store->id)->available()
             ->withAvg(['reviews' => function($query) {
                 $query->where('is_approved', true);
             }], 'rating')
@@ -130,13 +126,116 @@ class HomeController extends Controller
             ->limit(8)
             ->get();
         
-        // الأكثر مبيعاً للقسم الافتراضي
-        $bestSellers = Product::where('store_id', $store->id )->where('status','active')->available()
+        // الأكثر مبيعاً للقسم الافتراضي - من جدول order_items (only products ordered more than once)
+        $bestSellers = Product::where('store_id', $store->id)
+            ->available()
             ->withAvg(['reviews' => function($query) {
                 $query->where('is_approved', true);
             }], 'rating')
-            ->orderBy('sales_count', 'desc')
-            ->limit(8)
+            ->withCount(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }])
+            ->withCount(['orderItems' => function($query) {
+                $query->whereHas('order', function($q) {
+                    $q->whereIn('status', ['completed', 'processing', 'shipped']);
+                });
+            }])
+            ->having('order_items_count', '>', 1) // Only products ordered more than once
+            ->orderBy('order_items_count', 'desc')
+            ->limit(10)
+            ->get();
+        
+        // Popular Products - الأكثر مشاهدة
+        $popularProducts = Product::where('store_id', $store->id)
+            ->available()
+            ->withAvg(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating')
+            ->withCount(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }])
+            ->orderBy('views_count', 'desc')
+            ->limit(10)
+            ->get();
+        
+        // New Arrivals - أحدث المنتجات
+        $newArrivals = Product::where('store_id', $store->id)
+            ->available()
+            ->withAvg(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating')
+            ->withCount(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }])
+            ->latest()
+            ->limit(10)
+            ->get();
+        
+        // Top Selling Products - الأكثر مبيعاً (top 3, only products ordered more than once)
+        $topSellingProducts = Product::where('store_id', $store->id)
+            ->available()
+            ->withAvg(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating')
+            ->withCount(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }])
+            ->withCount(['orderItems' => function($query) {
+                $query->whereHas('order', function($q) {
+                    $q->whereIn('status', ['completed', 'processing', 'shipped']);
+                });
+            }])
+            ->having('order_items_count', '>', 1) // Only products ordered more than once
+            ->orderBy('order_items_count', 'desc')
+            ->limit(3)
+            ->get();
+        
+        // Trending Products - المنتجات الرائجة (حديثة ومبيعات جيدة)
+        $trendingProducts = Product::where('store_id', $store->id)
+            ->available()
+            ->withAvg(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating')
+            ->withCount(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }])
+            ->withCount(['orderItems' => function($query) {
+                $query->whereHas('order', function($q) {
+                    $q->whereIn('status', ['completed', 'processing', 'shipped'])
+                      ->where('created_at', '>=', now()->subDays(30));
+                });
+            }])
+            ->where('created_at', '>=', now()->subDays(90))
+            ->orderBy('order_items_count', 'desc')
+            ->limit(3)
+            ->get();
+        
+        // New Products - منتجات جديدة
+        $newProducts = Product::where('store_id', $store->id)
+            ->available()
+            ->withAvg(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating')
+            ->withCount(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }])
+            ->latest()
+            ->limit(3)
+            ->get();
+        
+        // Flash Sale Products - منتجات العروض السريعة (التي عليها خصم)
+        $flashSaleProducts = Product::where('store_id', $store->id)
+            ->available()
+            ->whereNotNull('old_price')
+            ->whereColumn('old_price', '>', 'price')
+            ->withAvg(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating')
+            ->withCount(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }])
+            ->orderByRaw('((old_price - price) / old_price) DESC')
+            ->limit(2)
             ->get();
         
         // الفئات - commented out, now using home_page config
@@ -197,6 +296,12 @@ class HomeController extends Controller
             'brandProducts',
             'latestProducts',
             'bestSellers',
+            'popularProducts',
+            'newArrivals',
+            'topSellingProducts',
+            'trendingProducts',
+            'newProducts',
+            'flashSaleProducts',
             'categories',
             'reviews',
             'name',

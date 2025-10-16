@@ -148,12 +148,12 @@
 @endif
 
 <!-- Featured Categories -->
-@if(isset($categories) && $categories->isNotEmpty())
+@if(isset($homePage) && $homePage->categories_enabled)
 <section class="featured-categories padding-top padding-bottom" data-aos="fade-up" data-aos-duration="1000">
     <div class="container">
         <div class="section-header">
             <div class="section-header__content">
-                <h2 class="mb-10">الأقسام المميزة</h2>
+                <h2 class="mb-10">{{ $homePage->categories_title ?? 'الأقسام المميزة' }}</h2>
             </div>
             <div class="section-header__action">
                 <div class="swiper-nav swiper-nav--style1">
@@ -163,34 +163,69 @@
             </div>
         </div>
 
-        <div class="featured-categories__slider swiper">
-            <div class="swiper-wrapper">
-                @foreach($categories as $category)
-                <div class="swiper-slide">
-                    <div class="featured-categories__item">
-                        <div class="featured-categories__item-inner {{ $loop->first ? 'active' : '' }}">
-                            <div class="featured-categories__thumb">
-                                @if($category->icon)
-                                    <div class="w-16 h-16 rounded-full {{ $category->bg_color ? 'bg-[' . $category->bg_color . ']/20' : 'bg-primary/20' }} flex items-center justify-center">
-                                        <i class="{{ $category->icon }} {{ $category->bg_color ? 'text-[' . $category->bg_color . ']' : 'text-primary' }} text-3xl"></i>
-                                    </div>
-                                @elseif($category->image)
-                                    <img src="{{ Storage::url($category->image) }}" alt="{{ $category->name }}" style="width: 64px; height: 64px; object-fit: contain;">
-                                @else
-                                    <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
-                                        <i class="fa-solid fa-folder text-primary text-3xl"></i>
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="featured-categories__content">
-                                <h4><a href="{{ route('products.index', ['category' => $category->id]) }}" class="stretched-link">{{ $category->name }}</a></h4>
+        @php
+            $availableCategories = collect();
+            foreach($homePage->categories_data as $categoryData) {
+                $category = $categories->firstWhere('id', $categoryData['id'] ?? $categoryData);
+                if($category) {
+                    $availableCategories->push($category);
+                }
+            }
+        @endphp
+        
+        @if($availableCategories->count() > 0)
+            @if($availableCategories->count() <= 6)
+                <!-- Show as grid if 6 or fewer categories -->
+                <div class="row g-3 justify-content-center">
+                    @foreach($availableCategories as $category)
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-6">
+                        <div class="featured-categories__item" style="position: relative;">
+                            <div class="featured-categories__item-inner">
+                                <div class="featured-categories__thumb" style="display: flex; align-items: center; justify-content: center;">
+                                    @if($category->icon)
+                                        <i class="{{ $category->icon }}" style="font-size: 3.5rem; color: {{ $category->bg_color ?: '#10B981' }}; line-height: 1;"></i>
+                                    @elseif($category->image)
+                                        <img src="{{ Storage::url($category->image) }}" alt="{{ $category->name }}" style="width: 80px; height: 80px; object-fit: contain;">
+                                    @else
+                                        <i class="fa-solid fa-folder" style="font-size: 3.5rem; color: var(--brand-color, #10B981); line-height: 1;"></i>
+                                    @endif
+                                </div>
+                                <div class="featured-categories__content">
+                                    <h4><a href="{{ route('products.index', ['category' => $category->id]) }}" class="stretched-link">{{ $category->name }}</a></h4>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    @endforeach
                 </div>
-                @endforeach
-            </div>
-        </div>
+            @else
+                <!-- Show as slider if more than 6 categories -->
+                <div class="featured-categories__slider swiper">
+                    <div class="swiper-wrapper">
+                        @foreach($availableCategories as $category)
+                        <div class="swiper-slide">
+                            <div class="featured-categories__item" style="position: relative;">
+                                <div class="featured-categories__item-inner">
+                                    <div class="featured-categories__thumb" style="display: flex; align-items: center; justify-content: center;">
+                                        @if($category->icon)
+                                            <i class="{{ $category->icon }}" style="font-size: 3.5rem; color: {{ $category->bg_color ?: '#10B981' }}; line-height: 1;"></i>
+                                        @elseif($category->image)
+                                            <img src="{{ Storage::url($category->image) }}" alt="{{ $category->name }}" style="width: 80px; height: 80px; object-fit: contain;">
+                                        @else
+                                            <i class="fa-solid fa-folder" style="font-size: 3.5rem; color: var(--brand-color, #10B981); line-height: 1;"></i>
+                                        @endif
+                                    </div>
+                                    <div class="featured-categories__content">
+                                        <h4><a href="{{ route('products.index', ['category' => $category->id]) }}" class="stretched-link">{{ $category->name }}</a></h4>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        @endif
     </div>
 </section>
 @endif
@@ -1138,27 +1173,30 @@
 
 @push('scripts')
 <script>
-    // Initialize Featured Categories Slider
-    const featuredCategoriesSlider = new Swiper('.featured-categories__slider', {
-        slidesPerView: 2,
-        spaceBetween: 20,
-        loop: true,
-        navigation: {
-            nextEl: '.featured-categories__slider-next',
-            prevEl: '.featured-categories__slider-prev',
-        },
-        breakpoints: {
-            640: {
-                slidesPerView: 3,
+    // Initialize Featured Categories Slider (only if slider exists)
+    const featuredCategoriesSliderElement = document.querySelector('.featured-categories__slider');
+    if (featuredCategoriesSliderElement) {
+        const featuredCategoriesSlider = new Swiper('.featured-categories__slider', {
+            slidesPerView: 2,
+            spaceBetween: 20,
+            loop: false,
+            navigation: {
+                nextEl: '.featured-categories__slider-next',
+                prevEl: '.featured-categories__slider-prev',
             },
-            768: {
-                slidesPerView: 4,
+            breakpoints: {
+                640: {
+                    slidesPerView: 3,
+                },
+                768: {
+                    slidesPerView: 4,
+                },
+                1024: {
+                    slidesPerView: 6,
+                },
             },
-            1024: {
-                slidesPerView: 6,
-            },
-        },
-    });
+        });
+    }
 
     // Initialize Featured Products Slider
     const featuredProductsSlider = new Swiper('.product-feature__slider', {

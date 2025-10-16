@@ -172,7 +172,7 @@ class Product extends Model
 
     public function scopeAvailable($query)
     {
-        return $query->where('status', 'available')->where('stock', '>', 0);
+        return $query->where('status', 'active')->where('stock', '>', 0);
     }
 
     public function scopeFeatured($query)
@@ -346,6 +346,22 @@ class Product extends Model
     public function getHasDiscountAttribute()
     {
         return $this->old_price && $this->old_price > $this->price;
+    }
+
+    /**
+     * Accessor for 'image' attribute (alias for main_image)
+     */
+    public function getImageAttribute()
+    {
+        return $this->main_image;
+    }
+
+    /**
+     * Accessor for 'original_price' attribute (alias for old_price)
+     */
+    public function getOriginalPriceAttribute()
+    {
+        return $this->old_price;
     }
 
     /**
