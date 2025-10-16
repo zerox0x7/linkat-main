@@ -24,7 +24,7 @@
 <!-- Checkout Section -->
 <section class="checkout padding-top padding-bottom">
     <div class="container">
-        <form action="{{ route('checkout.store') }}" method="POST" id="checkout-form">
+        <form action="{{ route('checkout.process') }}" method="POST" id="checkout-form">
             @csrf
             <div class="row g-4">
                 <!-- Billing Details -->
@@ -101,41 +101,94 @@
                                 <span>المجموع</span>
                             </div>
                             
-                            @if(isset($cartItems))
-                            @foreach($cartItems as $item)
+                            @foreach($cart->items as $item)
                             <div class="checkout__item">
                                 <div class="checkout__item-info">
-                                    <span class="checkout__item-name">{{ $item->product->name }}</span>
+                                    <span class="checkout__item-name">{{ $item->cartable->name ?? 'منتج غير محدد' }}</span>
                                     <span class="checkout__item-qty">× {{ $item->quantity }}</span>
+                                    
+                                    <!-- عرض بيانات المنتج المخصص -->
+                                    @if(isset($item->options['player_data']) && is_array($item->options['player_data']))
+                                    <div class="checkout__custom-data">
+                                        <small class="text-muted">بيانات المستخدم:</small>
+                                        <ul class="list-unstyled small">
+                                            @foreach($item->options['player_data'] as $fieldName => $fieldData)
+                                                @if($fieldName != 'price_option')
+                                                <li>
+                                                    @if(is_array($fieldData) && isset($fieldData['label']))
+                                                        <strong>{{ $fieldData['label'] }}:</strong>
+                                                        @if(isset($fieldData['value']))
+                                                            @if(is_array($fieldData['value']))
+                                                                @if(isset($fieldData['value']['name']) && isset($fieldData['value']['price']))
+                                                                    {{ $fieldData['value']['name'] }} - {{ $fieldData['value']['price'] }} ر.س
+                                                                @else
+                                                                    {{ implode(', ', array_map(function($v) { return is_array($v) ? '' : $v; }, $fieldData['value'])) }}
+                                                                @endif
+                                                            @else
+                                                                {{ $fieldData['value'] }}
+                                                            @endif
+                                                        @endif
+                                                    @else
+                                                        <strong>{{ $fieldName }}:</strong>
+                                                        @if(is_array($fieldData))
+                                                            {{ implode(', ', array_map(function($v) { return is_array($v) ? '' : $v; }, $fieldData)) }}
+                                                        @else
+                                                            {{ $fieldData }}
+                                                        @endif
+                                                    @endif
+                                                </li>
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                    @endif
+                                    
+                                    <!-- عرض الخدمة المطلوبة -->
+                                    @if(isset($item->options['service_option']) && is_array($item->options['service_option']))
+                                    <div class="checkout__service-data">
+                                        <small class="text-muted">الخدمة المطلوبة:</small>
+                                        <div class="small">
+                                            {{ $item->options['service_option']['name'] ?? 'خدمة مخصصة' }}
+                                            @if(isset($item->options['service_option']['price']))
+                                                <span class="text-success">({{ $item->options['service_option']['price'] }} ر.س)</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
-                                <span class="checkout__item-price">{{ number_format($item->product->price * $item->quantity, 2) }} ر.س</span>
+                                <span class="checkout__item-price">{{ number_format($item->price * $item->quantity, 2) }} ر.س</span>
                             </div>
                             @endforeach
-                            @endif
                         </div>
                         
                         <!-- Order Totals -->
                         <div class="checkout__totals">
                             <div class="checkout__total-item">
                                 <span>المجموع الفرعي:</span>
-                                <span>{{ number_format($subtotal ?? 0, 2) }} ر.س</span>
+                                <span>{{ number_format($cart->getSubtotal(), 2) }} ر.س</span>
                             </div>
                             
                             <div class="checkout__total-item">
                                 <span>الشحن:</span>
-                                <span>{{ number_format($shipping ?? 0, 2) }} ر.س</span>
+                                <span>مجاني</span>
                             </div>
                             
-                            @if(isset($discount) && $discount > 0)
+                            @if(session('coupon'))
                             <div class="checkout__total-item text-success">
-                                <span>الخصم:</span>
-                                <span>-{{ number_format($discount, 2) }} ر.س</span>
+                                <span>الخصم ({{ session('coupon')['code'] }}):</span>
+                                <span>-{{ number_format(session('coupon')['discount'], 2) }} ر.س</span>
                             </div>
                             @endif
                             
                             <div class="checkout__total-item checkout__total-final">
                                 <span>المجموع الكلي:</span>
-                                <span>{{ number_format($total ?? 0, 2) }} ر.س</span>
+                                <span>
+                                    @if(session('coupon'))
+                                        {{ number_format($cart->getTotal() - session('coupon')['discount'], 2) }} ر.س
+                                    @else
+                                        {{ number_format($cart->getTotal(), 2) }} ر.س
+                                    @endif
+                                </span>
                             </div>
                         </div>
                         
@@ -143,26 +196,28 @@
                         <div class="checkout__payment mt-4">
                             <h5 class="mb-3">طريقة الدفع</h5>
                             
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod" checked>
-                                <label class="form-check-label" for="cod">
-                                    الدفع عند الاستلام
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="radio" name="payment_method" id="card" value="card">
-                                <label class="form-check-label" for="card">
-                                    بطاقة ائتمان / مدى
-                                </label>
-                            </div>
-                            
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="radio" name="payment_method" id="bank_transfer" value="bank_transfer">
-                                <label class="form-check-label" for="bank_transfer">
-                                    تحويل بنكي
-                                </label>
-                            </div>
+                            @forelse($paymentMethods as $method)
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="{{ $method->code }}" value="{{ $method->code }}" @if(old('payment_method') == $method->code || $loop->first) checked @endif required>
+                                    <label class="form-check-label" for="{{ $method->code }}">
+                                        @if($method->logo)
+                                            <img src="{{ asset('storage/' . $method->logo) }}" alt="{{ $method->name }}" class="payment-method-logo me-2" style="height: 20px;">
+                                        @endif
+                                        {{ $method->name }}
+                                        @if($method->description)
+                                            <small class="text-muted d-block">{{ $method->description }}</small>
+                                        @endif
+                                        @if($method->code == 'balance')
+                                            <small class="text-primary d-block">رصيدك: {{ auth()->user()->balance ?? 0 }} ر.س</small>
+                                        @endif
+                                    </label>
+                                </div>
+                            @empty
+                                <div class="alert alert-warning">
+                                    <i class="fa-solid fa-exclamation-triangle me-2"></i>
+                                    لا توجد طرق دفع متاحة حالياً. يرجى التواصل مع إدارة الموقع.
+                                </div>
+                            @endforelse
                         </div>
                         
                         <!-- Terms -->
@@ -267,18 +322,102 @@
     border-radius: 6px;
     padding: 12px 15px;
 }
+
+.checkout__custom-data,
+.checkout__service-data {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #007bff;
+}
+
+.checkout__custom-data ul {
+    margin: 4px 0 0 0;
+    padding-right: 15px;
+}
+
+.checkout__custom-data li {
+    margin-bottom: 2px;
+}
+
+.payment-method-logo {
+    vertical-align: middle;
+}
+
+.checkout__item {
+    border-bottom: 1px solid #f0f0f0;
+    padding: 15px 0;
+}
+
+.checkout__item:last-child {
+    border-bottom: none;
+}
+
+.payment-method-active {
+    background-color: #e3f2fd !important;
+    border: 2px solid #2196f3 !important;
+    border-radius: 8px !important;
+    padding: 10px !important;
+}
+
+.form-check {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+.form-check:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
 </style>
 @endpush
 
 @push('scripts')
 <script>
-document.getElementById('checkout-form').addEventListener('submit', function(e) {
-    const termsCheckbox = document.getElementById('terms');
-    if (!termsCheckbox.checked) {
-        e.preventDefault();
-        alert('يرجى الموافقة على الشروط والأحكام');
-        return false;
-    }
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle form submission
+    document.getElementById('checkout-form').addEventListener('submit', function(e) {
+        const termsCheckbox = document.getElementById('terms');
+        if (!termsCheckbox.checked) {
+            e.preventDefault();
+            alert('يرجى الموافقة على الشروط والأحكام');
+            return false;
+        }
+    });
+    
+    // Handle payment method selection styling
+    const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+    paymentMethods.forEach(method => {
+        method.addEventListener('change', function() {
+            // Remove active class from all payment method containers
+            paymentMethods.forEach(m => {
+                const container = m.closest('.form-check');
+                if (container) {
+                    container.classList.remove('payment-method-active');
+                }
+            });
+            
+            // Add active class to selected payment method
+            if (this.checked) {
+                const container = this.closest('.form-check');
+                if (container) {
+                    container.classList.add('payment-method-active');
+                }
+            }
+        });
+        
+        // Set initial active state
+        if (method.checked) {
+            const container = method.closest('.form-check');
+            if (container) {
+                container.classList.add('payment-method-active');
+            }
+        }
+    });
 });
 </script>
 @endpush

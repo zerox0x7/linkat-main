@@ -116,6 +116,9 @@ class ProductController extends Controller
         
         $categories = Category::where('store_id', $store->id)
             ->where('is_active', true)
+            ->withCount(['products' => function($query) {
+                $query->whereIn('status', ['active', 'out-of-stock']);
+            }])
             ->orderBy('sort_order')
             ->get();
 
@@ -166,6 +169,120 @@ class ProductController extends Controller
 
             
        // return view('theme::pages.products.index', compact('products', 'categories', 'currentCategory'));
+    }
+    
+    /**
+     * عرض منتجات التصنيف
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $slug
+     * @return \Illuminate\Contracts\View\View
+     */
+    public function category(Request $request, $slug)
+    {
+        $store = $request->attributes->get('store');
+        $theme = $store->active_theme;
+        $name = $store->name;
+
+        // البحث عن التصنيف
+        $category = Category::where('slug', $slug)
+            ->where('store_id', $store->id)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        // جلب المنتجات المتعلقة بهذا التصنيف
+        $query = Product::query()
+            ->where('store_id', $store->id)
+            ->where('category_id', $category->id)
+            ->whereIn('status', ['active', 'out-of-stock']);
+
+        // تصفية حسب نطاق السعر
+        if ($request->has('min_price') && is_numeric($request->min_price)) {
+            $query->where('price', '>=', $request->min_price);
+        }
+        
+        if ($request->has('max_price') && is_numeric($request->max_price)) {
+            $query->where('price', '<=', $request->max_price);
+        }
+        
+        // تصفية حسب التقييمات
+        if ($request->has('rating_filter') && is_numeric($request->rating_filter)) {
+            $minRating = (int)$request->rating_filter;
+            $query->where('rating', '>=', $minRating);
+        }
+        
+        // الترتيب
+        switch ($request->get('sort', 'newest')) {
+            case 'price_asc':
+                $query->orderBy('price', 'asc');
+                break;
+            case 'price_desc':
+                $query->orderBy('price', 'desc');
+                break;
+            case 'popular':
+                $query->orderBy('sales_count', 'desc');
+                break;
+            case 'rating':
+                $query->orderBy('rating', 'desc');
+                break;
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            case 'name_desc':
+                $query->orderBy('name', 'desc');
+                break;
+            default:
+                $query->latest();
+        }
+        
+        // إضافة علاقة التصنيف وحساب متوسط التقييمات
+        $query->with('category')
+              ->withAvg(['reviews' => function($query) {
+                  $query->where('is_approved', true);
+              }], 'rating');
+        
+        $products = $query->paginate(12);
+        
+        // جلب جميع التصنيفات للشريط الجانبي
+        $categories = Category::where('store_id', $store->id)
+            ->where('is_active', true)
+            ->withCount(['products' => function($query) {
+                $query->whereIn('status', ['active', 'out-of-stock']);
+            }])
+            ->orderBy('sort_order')
+            ->get();
+
+        // Get flash sale products (products with discounts)
+        $flashSaleProducts = Product::whereIn('status', ['active', 'out-of-stock'])
+            ->where('store_id', $store->id)
+            ->where('category_id', $category->id)
+            ->where('has_discount', true)
+            ->whereNotNull('old_price')
+            ->where('old_price', '>', 'price')
+            ->with('category')
+            ->withAvg(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating')
+            ->orderBy('created_at', 'desc')
+            ->take(4)
+            ->get();
+
+        // Get popular products (best selling products from this category)
+        $popularProducts = Product::whereIn('status', ['active', 'out-of-stock'])
+            ->where('store_id', $store->id)
+            ->where('category_id', $category->id)
+            ->with('category')
+            ->withAvg(['reviews' => function($query) {
+                $query->where('is_approved', true);
+            }], 'rating')
+            ->orderBy('sales_count', 'desc')
+            ->take(8)
+            ->get();
+
+        $productsPage = ProductsPage::where('store_id', $store->id)->first();
+        $currentCategory = $category;
+
+        return view("themes.$theme.pages.category.show", compact('products', 'categories', 'name', 'category', 'currentCategory', 'flashSaleProducts', 'popularProducts', 'productsPage'));
     }
     
     /**

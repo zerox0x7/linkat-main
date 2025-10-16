@@ -191,7 +191,7 @@
                                     @endif
                                 </div>
                                 <div class="featured-categories__content">
-                                    <h4><a href="{{ route('products.index', ['category' => $category->id]) }}" class="stretched-link">{{ $category->name }}</a></h4>
+                                    <h4><a href="{{ route('category.show', $category->slug) }}" class="stretched-link">{{ $category->name }}</a></h4>
                                 </div>
                             </div>
                         </div>
@@ -216,7 +216,7 @@
                                         @endif
                                     </div>
                                     <div class="featured-categories__content">
-                                        <h4><a href="{{ route('products.index', ['category' => $category->id]) }}" class="stretched-link">{{ $category->name }}</a></h4>
+                                        <h4><a href="{{ route('category.show', $category->slug) }}" class="stretched-link">{{ $category->name }}</a></h4>
                                     </div>
                                 </div>
                             </div>
@@ -261,7 +261,7 @@
                                 @endif
                             </div>
                             <div class="product__item-content">
-                                <h4><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h4>
+                                <h4><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h4>
                                 <div class="product__item-rating">
                                     <i class="fa-solid fa-star"></i> {{ $product->rating ?? 5.0 }} <span>({{ $product->reviews_count ?? 0 }} تقييم)</span>
                                 </div>
@@ -273,8 +273,11 @@
                                         @endif
                                     </div>
                                     <div class="product__item-action">
-                                        <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                             @csrf
+                                            <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                            <input type="hidden" name="product_type" value="product">
+                                            <input type="hidden" name="quantity" value="1">
                                             <button type="submit" class="trk-btn trk-btn--outline">أضف للسلة</button>
                                         </form>
                                     </div>
@@ -415,7 +418,7 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-rating">
                                                 <i class="fa-solid fa-star"></i> {{ $product->rating ?? 5.0 }} <span>({{ $product->reviews_count ?? 0 }} تقييم)</span>
                                             </div>
@@ -427,8 +430,11 @@
                                                     @endif
                                                 </div>
                                                 <div class="product__item-action">
-                                                    <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
+                                                    <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                                         @csrf
+                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                        <input type="hidden" name="product_type" value="product">
+                                                        <input type="hidden" name="quantity" value="1">
                                                         <button type="submit" class="trk-btn trk-btn--outline">أضف للسلة</button>
                                                     </form>
                                                 </div>
@@ -461,7 +467,7 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-rating">
                                                 <i class="fa-solid fa-star"></i> {{ $product->rating ?? 5.0 }} <span>({{ $product->reviews_count ?? 0 }})</span>
                                             </div>
@@ -470,8 +476,11 @@
                                                     <h4>{{ number_format($product->price, 2) }} ر.س</h4>
                                                 </div>
                                                 <div class="product__item-action">
-                                                    <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
+                                                    <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                                         @csrf
+                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                        <input type="hidden" name="product_type" value="product">
+                                                        <input type="hidden" name="quantity" value="1">
                                                         <button type="submit" class="trk-btn trk-btn--outline">أضف للسلة</button>
                                                     </form>
                                                 </div>
@@ -494,7 +503,7 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-rating">
                                                 <i class="fa-solid fa-star"></i> {{ $product->rating ?? 5.0 }}
                                             </div>
@@ -503,8 +512,11 @@
                                                     <h4>{{ number_format($product->price, 2) }} ر.س</h4>
                                                 </div>
                                                 <div class="product__item-action">
-                                                    <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
+                                                    <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                                         @csrf
+                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                        <input type="hidden" name="product_type" value="product">
+                                                        <input type="hidden" name="quantity" value="1">
                                                         <button type="submit" class="trk-btn trk-btn--outline">أضف للسلة</button>
                                                     </form>
                                                 </div>
@@ -534,7 +546,7 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-rating">
                                                 <i class="fa-solid fa-star"></i> {{ $product->rating ?? 5.0 }}
                                             </div>
@@ -543,8 +555,11 @@
                                                     <h4>{{ number_format($product->price, 2) }} ر.س</h4>
                                                 </div>
                                                 <div class="product__item-action">
-                                                    <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
+                                                    <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                                         @csrf
+                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                        <input type="hidden" name="product_type" value="product">
+                                                        <input type="hidden" name="quantity" value="1">
                                                         <button type="submit" class="trk-btn trk-btn--outline">أضف للسلة</button>
                                                     </form>
                                                 </div>
@@ -567,14 +582,17 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-footer">
                                                 <div class="product__item-price">
                                                     <h4>{{ number_format($product->price, 2) }} ر.س</h4>
                                                 </div>
                                                 <div class="product__item-action">
-                                                    <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
+                                                    <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                                         @csrf
+                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                        <input type="hidden" name="product_type" value="product">
+                                                        <input type="hidden" name="quantity" value="1">
                                                         <button type="submit" class="trk-btn trk-btn--outline">أضف للسلة</button>
                                                     </form>
                                                 </div>
@@ -604,7 +622,7 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-rating">
                                                 <i class="fa-solid fa-star"></i> {{ $product->rating ?? 5.0 }}
                                             </div>
@@ -613,8 +631,11 @@
                                                     <h4>{{ number_format($product->price, 2) }} ر.س</h4>
                                                 </div>
                                                 <div class="product__item-action">
-                                                    <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
+                                                    <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                                         @csrf
+                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                        <input type="hidden" name="product_type" value="product">
+                                                        <input type="hidden" name="quantity" value="1">
                                                         <button type="submit" class="trk-btn trk-btn--outline">أضف للسلة</button>
                                                     </form>
                                                 </div>
@@ -637,14 +658,17 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-footer">
                                                 <div class="product__item-price">
                                                     <h4>{{ number_format($product->price, 2) }} ر.س</h4>
                                                 </div>
                                                 <div class="product__item-action">
-                                                    <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
+                                                    <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                                         @csrf
+                                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                                        <input type="hidden" name="product_type" value="product">
+                                                        <input type="hidden" name="quantity" value="1">
                                                         <button type="submit" class="trk-btn trk-btn--outline">أضف للسلة</button>
                                                     </form>
                                                 </div>
@@ -746,7 +770,7 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-rating">
                                                 <i class="fa-solid fa-star"></i> {{ $product->rating ?? 5.0 }} <span>({{ $product->reviews_count ?? 0 }})</span>
                                             </div>
@@ -800,7 +824,7 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-rating">
                                                 <i class="fa-solid fa-star"></i> {{ $product->rating ?? 4.5 }} <span>({{ $product->reviews_count ?? 0 }})</span>
                                             </div>
@@ -851,7 +875,7 @@
                                             @endif
                                         </div>
                                         <div class="product__item-content">
-                                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                                             <div class="product__item-rating">
                                                 <i class="fa-solid fa-star"></i> {{ $product->rating ?? 4.5 }} <span>({{ $product->reviews_count ?? 0 }})</span>
                                             </div>
@@ -956,10 +980,10 @@
                                             <img src="{{ asset('themes/torganic/assets/images/product/popular/' . (($loop->index % 10) + 1) . '.png') }}" alt="{{ $product->name }}">
                                         @endif
                                     </div>
-                                    <div class="product__item-content">
-                                        <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
-                                        <div class="product__item-rating">
-                                            <i class="fa-solid fa-star"></i> {{ $product->rating ?? 4.9 }} <span>({{ $product->reviews_count ?? 0 }})</span>
+                                        <div class="product__item-content">
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
+                                            <div class="product__item-rating">
+                                                <i class="fa-solid fa-star"></i> {{ $product->rating ?? 4.9 }} <span>({{ $product->reviews_count ?? 0 }})</span>
                                         </div>
                                         <div class="product__item-footer">
                                             <div class="product__item-price">
@@ -989,11 +1013,11 @@
                                             <img src="{{ asset('themes/torganic/assets/images/product/popular/' . (($loop->index % 10) + 1) . '.png') }}" alt="{{ $product->name }}">
                                         @endif
                                     </div>
-                                    <div class="product__item-content">
-                                        <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
-                                        <div class="product__item-rating">
-                                            <i class="fa-solid fa-star"></i> {{ $product->rating ?? 4.5 }}
-                                        </div>
+                                        <div class="product__item-content">
+                                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
+                                            <div class="product__item-rating">
+                                                <i class="fa-solid fa-star"></i> {{ $product->rating ?? 4.5 }}
+                                            </div>
                                         <div class="product__item-footer">
                                             <div class="product__item-price">
                                                 <h4>{{ number_format($product->price, 2) }} ر.س</h4>

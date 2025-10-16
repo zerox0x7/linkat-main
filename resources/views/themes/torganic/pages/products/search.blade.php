@@ -81,7 +81,7 @@
                         </div>
                         @endif
                         <div class="product__item-thumb">
-                            <a href="{{ route('products.show', $product->id) }}">
+                            <a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">
                                 @if($product->image)
                                     <img src="{{ Storage::url($product->image) }}" alt="{{ $product->name }}">
                                 @else
@@ -90,7 +90,7 @@
                             </a>
                         </div>
                         <div class="product__item-content">
-                            <h5><a href="{{ route('products.show', $product->id) }}">{{ $product->name }}</a></h5>
+                            <h5><a href="{{ route('products.show', $product->slug ?? $product->share_slug ?? $product->id) }}">{{ $product->name }}</a></h5>
                             <div class="product__item-rating">
                                 <i class="fa-solid fa-star"></i> {{ $product->rating ?? 5.0 }} 
                                 <span>({{ $product->reviews_count ?? 0 }} تقييم)</span>
@@ -103,8 +103,11 @@
                                     @endif
                                 </div>
                                 <div class="product__item-action">
-                                    <form action="{{ route('cart.add', $product->id) }}" method="POST" class="d-inline">
+                                    <form action="{{ route('cart.add') }}" method="POST" class="d-inline">
                                         @csrf
+                                        <input type="hidden" name="product_id" value="{{ $product->id }}">
+                                        <input type="hidden" name="product_type" value="product">
+                                        <input type="hidden" name="quantity" value="1">
                                         <button type="submit" class="trk-btn trk-btn--outline">أضف للسلة</button>
                                     </form>
                                 </div>

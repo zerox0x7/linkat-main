@@ -36,15 +36,25 @@ class Cart extends Model
     }
 
     /**
+     * Get cart subtotal (before shipping, tax, etc.)
+     * 
+     * @return float
+     */
+    public function getSubtotal()
+    {
+        return $this->items->sum(function($item) {
+            return $item->price * $item->quantity;
+        });
+    }
+
+    /**
      * Get cart total
      * 
      * @return float
      */
     public function getTotal()
     {
-        return $this->items->sum(function($item) {
-            return $item->price * $item->quantity;
-        });
+        return $this->getSubtotal();
     }
 
     /**

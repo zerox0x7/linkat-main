@@ -22,7 +22,26 @@ class CartController extends Controller
         $theme = $request->attributes->get('theme');
         
         $cart = $this->getCart();
-        return view('themes.'.$theme.'.pages.cart.index', compact('cart'));
+        $cartItems = $cart->items;
+        
+        // Debug: Log cart data
+        \Log::info('Cart Debug', [
+            'cart_id' => $cart->id,
+            'items_count' => $cartItems->count(),
+            'items' => $cartItems->toArray(),
+            'session_id' => session()->get('cart_session_id'),
+            'user_id' => auth()->id(),
+            'laravel_session_id' => session()->getId(),
+            'all_session_data' => session()->all()
+        ]);
+        
+        // Calculate totals
+        $subtotal = $cart->getSubtotal();
+        $shipping = 0; // You can add shipping calculation logic here
+        $discount = 0; // You can add discount calculation logic here
+        $total = $subtotal + $shipping - $discount;
+        
+        return view('themes.'.$theme.'.pages.cart.index', compact('cart', 'cartItems', 'subtotal', 'shipping', 'discount', 'total'));
     }
 
     /**
@@ -202,6 +221,15 @@ class CartController extends Controller
         // إعادة تحميل السلة لضمان الحصول على البيانات المحدثة
         $cart = $cart->fresh(['items']);
         
+        // Debug: Log cart after adding item
+        \Log::info('Cart After Adding Item', [
+            'cart_id' => $cart->id,
+            'items_count' => $cart->items->count(),
+            'items' => $cart->items->toArray(),
+            'session_id' => session()->get('cart_session_id'),
+            'user_id' => auth()->id()
+        ]);
+        
         // حفظ عدد العناصر في الجلسة للتأكد من التزامن
         $cartCount = $cart->getItemsCount();
         session()->put('cart_count', $cartCount);
@@ -354,6 +382,8 @@ class CartController extends Controller
             if (!$sessionId) {
                 $sessionId = Str::uuid();
                 session()->put('cart_session_id', $sessionId);
+                // Force session save
+                session()->save();
             }
             
             $cart = Cart::with(['items.cartable'])->firstOrCreate([
@@ -365,6 +395,8 @@ class CartController extends Controller
         $cartCount = $cart->getItemsCount();
         if (session()->get('cart_count') !== $cartCount) {
             session()->put('cart_count', $cartCount);
+            // Force session save
+            session()->save();
         }
 
         return $cart;

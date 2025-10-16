@@ -217,20 +217,20 @@
                     <span class="text-xs text-gray-400">ORD-7895#</span>
                 </div>
                 <div class="flex justify-between pt-3 border-t border-gray-700 mt-3">
-                    <button class="text-gray-300 hover:text-primary">
+                    <a href="{{ route('admin.products.edit', $product->id) }}" class="text-gray-300 hover:text-primary transition-colors">
                         <div class="w-5 h-5 flex items-center justify-center">
                             <i class="ri-edit-line"></i>
                         </div>
-                    </button>
-                    <button class="text-gray-300 hover:text-primary">
+                    </a>
+                    <a href="{{ route('admin.products.advanced-coupon') }}" class="text-gray-300 hover:text-primary transition-colors">
                         <div class="w-5 h-5 flex items-center justify-center">
                             <i class="ri-coupon-line"></i>
                         </div>
-                    </button>
+                    </a>
 
                     <!-- Delete Form -->
 
-                    <button type="button" class="text-gray-300 hover:text-red-500"
+                    <button type="button" class="text-gray-300 hover:text-red-500 transition-colors"
                         onclick="showConfirmationModal({{ $product->id }})">
                         <div class="w-5 h-5 flex items-center justify-center">
                             <i class="ri-delete-bin-line"></i>

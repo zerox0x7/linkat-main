@@ -61,6 +61,7 @@ Route::get('/products/search', [ProductController::class, 'search'])->name('prod
 Route::get('/products/featured', [ProductController::class, 'featured'])->name('products.featured');
 Route::get('/products/best-sellers', [ProductController::class, 'bestSellers'])->name('products.best-sellers');
 Route::post('/products/filter-popular', [ProductController::class, 'filterPopularProducts'])->name('products.filter-popular');
+Route::get('/category/{slug}', [ProductController::class, 'category'])->name('category.show');
 Route::get('/products/{slug}', [ProductController::class, 'show'])->name('products.show');
 
 // أدوات النظام (مؤقتة)
@@ -78,6 +79,17 @@ Route::put('/cart/{id}', [CartController::class, 'updateItem'])->name('cart.upda
 Route::delete('/cart/{id}', [CartController::class, 'removeItem'])->name('cart.remove');
 Route::delete('/cart', [CartController::class, 'clear'])->name('cart.clear');
 Route::get('/cart/count', [CartController::class, 'getCartCount'])->name('cart.count');
+
+// Debug route
+Route::get('/debug-session', function() {
+    return response()->json([
+        'session_id' => session()->getId(),
+        'cart_session_id' => session()->get('cart_session_id'),
+        'cart_count' => session()->get('cart_count'),
+        'all_session' => session()->all(),
+        'user_id' => auth()->id(),
+    ]);
+});
 Route::get('/cart/init', [CartController::class, 'initializeCartSession'])->name('cart.init');
 
 // كوبونات الخصم

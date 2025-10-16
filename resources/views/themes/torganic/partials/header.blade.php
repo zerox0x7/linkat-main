@@ -196,7 +196,7 @@
                                 <div class="submenu">
                                     <ul>
                                         @foreach($categories->take($headerSettings->categories_count ?? 5) as $category)
-                                        <li><a href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a></li>
+                                        <li><a href="{{ route('category.show', $category->slug) }}">{{ $category->name }}</a></li>
                                         @endforeach
                                     </ul>
                                 </div>
@@ -274,7 +274,7 @@
                                 <div class="submenu">
                                     <ul>
                                         @foreach($categories->take($headerSettings->categories_count ?? 5) as $category)
-                                        <li><a href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a></li>
+                                        <li><a href="{{ route('category.show', $category->slug) }}">{{ $category->name }}</a></li>
                                         @endforeach
                                     </ul>
                                 </div>
@@ -392,7 +392,7 @@
                                 <div class="submenu">
                                     <ul>
                                         @foreach($categories->take($headerSettings->categories_count ?? 5) as $category)
-                                        <li><a href="{{ route('products.index', ['category' => $category->id]) }}">{{ $category->name }}</a></li>
+                                        <li><a href="{{ route('category.show', $category->slug) }}">{{ $category->name }}</a></li>
                                         @endforeach
                                     </ul>
                                 </div>

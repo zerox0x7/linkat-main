@@ -45,31 +45,31 @@
                                     <td>
                                         <div class="cart__product">
                                             <div class="cart__product-thumb">
-                                                @if($item->product->image)
-                                                    <img src="{{ Storage::url($item->product->image) }}" alt="{{ $item->product->name }}">
+                                                @if($item->cartable && $item->cartable->image)
+                                                    <img src="{{ Storage::url($item->cartable->image) }}" alt="{{ $item->cartable->name }}">
                                                 @else
-                                                    <img src="{{ asset('themes/torganic/assets/images/product/cart/1.png') }}" alt="{{ $item->product->name }}">
+                                                    <img src="{{ asset('themes/torganic/assets/images/product/cart/1.png') }}" alt="{{ $item->cartable->name ?? 'منتج' }}">
                                                 @endif
                                             </div>
                                             <div class="cart__product-content">
-                                                <h6><a href="{{ route('products.show', $item->product->id) }}">{{ $item->product->name }}</a></h6>
+                                                <h6><a href="{{ route('products.show', $item->cartable->id ?? $item->cartable_id) }}">{{ $item->cartable->name ?? 'منتج غير محدد' }}</a></h6>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="cart__price">{{ number_format($item->product->price, 2) }} ر.س</span>
+                                        <span class="cart__price">{{ number_format($item->price, 2) }} ر.س</span>
                                     </td>
                                     <td>
                                         <div class="cart__quantity">
                                             <form action="{{ route('cart.update', $item->id) }}" method="POST" class="quantity-form">
                                                 @csrf
                                                 @method('PUT')
-                                                <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" max="{{ $item->product->stock }}" class="form-control quantity-input" onchange="this.form.submit()">
+                                                <input type="number" name="quantity" value="{{ $item->quantity }}" min="1" max="{{ $item->cartable->stock ?? 999 }}" class="form-control quantity-input" onchange="this.form.submit()">
                                             </form>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="cart__subtotal">{{ number_format($item->product->price * $item->quantity, 2) }} ر.س</span>
+                                        <span class="cart__subtotal">{{ number_format($item->price * $item->quantity, 2) }} ر.س</span>
                                     </td>
                                     <td>
                                         <form action="{{ route('cart.remove', $item->id) }}" method="POST">
